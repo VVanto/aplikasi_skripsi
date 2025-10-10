@@ -8,9 +8,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        lightOlive: "#3f4f44",
-        lightCream: "#dcd7c9",
-        cream: "#b6af9c",
+        olive: "#3C3D37",
+        darkOlive: "#181C14",
+        lightOlive: "#5c5e54",
+        cream: "#ECDFCC",
       },
     },
   },

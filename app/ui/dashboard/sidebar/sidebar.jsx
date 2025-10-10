@@ -3,6 +3,7 @@ import {
   MdAttachMoney,
   MdDashboard,
   MdHelpCenter,
+  MdLogout,
   MdOutlineSettings,
   MdPeople,
   MdShoppingBag,
@@ -11,6 +12,7 @@ import {
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import Image from "next/image";
+import { Bodoni_Moda } from "next/font/google";
 
 const menuItems = [
   {
@@ -32,7 +34,7 @@ const menuItems = [
         icon: <MdShoppingBag />,
       },
       {
-        title: "Messages",
+        title: "Transactions",
         path: "/dashboard/transaction",
         icon: <MdAttachMoney />,
       },
@@ -75,9 +77,15 @@ const menuItems = [
   },
 ];
 
+const bodoni = Bodoni_Moda({
+  weight: ["400"],
+  subsets: ["latin"]
+
+});
+
 const Sidebar = () => {
   return (
-    <div className="sticky top-10">
+    <div className="sticky top-10 w-full">
       <div className="flex items-center gap-5 mb-5">
         <Image
           src="/noavatar.png"
@@ -91,16 +99,22 @@ const Sidebar = () => {
           <span className="text-sm text-cream">Administrator</span>
         </div>
       </div>
-      <ul className="list-none">
+      <ul>
         {menuItems.map((cat) => (
           <li key={cat.titles}>
-            <span className="">{cat.titles}</span>
+            <span className={`text-cream text-lg my-3 ${bodoni.className}`} >
+              {cat.titles}
+            </span>
             {cat.list.map((item) => (
               <MenuLink item={item} key={item.title} />
             ))}
           </li>
         ))}
       </ul>
+      <button className="px-5 py-3 my-2  flex items-center gap-2 hover:bg-lightOlive rounded-lg">
+        <MdLogout />
+        Logout
+      </button>
     </div>
   );
 };

@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #2c3930;
-  --bgSoft: #3f4f44;
+  --background: #181c14;
+  --bgSoft: #3c3d37;
 
-  --text: #dcd7c9;
+  --text: #ecdfcc;
   --textSoft: #b6af9c;
 }
 
@@ -21,6 +21,10 @@ body {
   color: var(--text);
 
   font-family: Arial, Helvetica, sans-serif;
+}
+
+td{
+  padding: 10px;
 }
 
 a {
