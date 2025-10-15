@@ -12,7 +12,6 @@ import {
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import Image from "next/image";
-import { Bodoni_Moda } from "next/font/google";
 
 const menuItems = [
   {
@@ -77,12 +76,6 @@ const menuItems = [
   },
 ];
 
-const bodoni = Bodoni_Moda({
-  weight: ["400"],
-  subsets: ["latin"]
-
-});
-
 const Sidebar = () => {
   return (
     <div className="sticky top-10 w-full">
@@ -102,9 +95,7 @@ const Sidebar = () => {
       <ul>
         {menuItems.map((cat) => (
           <li key={cat.titles}>
-            <span className={`text-cream text-lg my-3 ${bodoni.className}`} >
-              {cat.titles}
-            </span>
+            <span className="text-cream text-lg my-3 ">{cat.titles}</span>
             {cat.list.map((item) => (
               <MenuLink item={item} key={item.title} />
             ))}

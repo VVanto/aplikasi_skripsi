@@ -12,6 +12,7 @@ module.exports = {
         darkOlive: "#181C14",
         lightOlive: "#5c5e54",
         cream: "#ECDFCC",
+        sage: "#005956",
       },
     },
   },

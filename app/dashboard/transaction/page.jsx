@@ -1,14 +1,9 @@
-import { Bodoni_Moda } from "next/font/google";
 
-const bodoni = Bodoni_Moda({
-  weight: ["400"],
-  subsets: ["latin"]
-});
 
 const Transaction = () => {
   return (
-    <div className="bg-olive p-5 rounded-lg ">
-      <h2 className={`mb-5 text-2xl ${bodoni.className}`}>Transaksi terbaru</h2>
+    <div className="bg-olive p-5 mt-5 rounded-lg ">
+      <h2 className="mb-5 text-2xl">Transaksi terbaru</h2>
       <table className="w-full ">
         <thead>
           <tr>

@@ -1,5 +1,4 @@
 "use client";
-import { Bodoni_Moda } from "next/font/google";
 import { usePathname } from "next/navigation";
 import {
   MdNotifications,
@@ -8,18 +7,14 @@ import {
   MdSearch,
 } from "react-icons/md";
 
-const bodoni = Bodoni_Moda({
-  weight: ["400"],
-  subsets: ["latin"]
 
-});
 
 const Navbar = () => {
   const pathName = usePathname();
 
   return (
     <div className="flex p-5 content-center justify-between  bg-olive rounded-lg">
-      <div className={`text-3xl ${bodoni.className} content-center justify-between text-cream capitalize`}>
+      <div className="text-3xl content-center justify-between text-cream capitalize">
         {pathName.split("/").pop()}
       </div>
       <div className="flex items-center gap-5">
