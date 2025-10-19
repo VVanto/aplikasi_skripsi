@@ -42,28 +42,24 @@ const AddProductPage = () => {
             Eksterior
           </option>
         </select>
-        <input
-          type="number"
-          placeholder="Harga"
-          name="harga"
-          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-        />
+
         <input
           type="number"
           placeholder="Stok"
           name="stok"
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
         />
-        <input
-          type="text"
-          placeholder="Warna"
-          name="warna"
-          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-        />
+
         <input
           type="text"
           placeholder="Satuan"
           name="satuan"
+          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
+        />
+        <input
+          type="number"
+          placeholder="Harga"
+          name="harga"
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
         />
         <textarea

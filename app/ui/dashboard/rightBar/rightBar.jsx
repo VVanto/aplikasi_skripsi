@@ -15,8 +15,8 @@ const RightBar = () => {
             />
           </div>
           <div className="flex flex-col gap-5">
-            <span className="font-bold text-2xl">John Doe</span>
-            <h3 className="text-xl">Software Engineer</h3>
+            <span className="font-bold text-2xl">Nico Suwanto</span>
+            <h3 className="text-xl">Frontend Developer</h3>
             <span>Apakek</span>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.

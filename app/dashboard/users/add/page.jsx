@@ -5,14 +5,14 @@ const AddUserPage = () => {
         <input
           type="text"
           placeholder="Nama Pengguna"
-          name="nama"
+          name="name"
           className="bg-transparent w-5/12 border border-lightOlive p-7  rounded-lg mb-7"
           required
         />
         <input
           type="text"
           placeholder="Username"
-          name="text"
+          name="username"
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
         />
         <input
@@ -23,8 +23,8 @@ const AddUserPage = () => {
         />
 
         <select
-          name="cat"
-          id="cat"
+          name="role"
+          id="role"
           className="bg-olive  w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
         >
           <option value="false" disabled selected className="bg-olive">

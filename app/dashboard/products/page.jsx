@@ -23,6 +23,7 @@ const Products = () => {
             <td>Harga</td>
             <td>Dibuat pada</td>
             <td>Stok</td>
+            <td>Satuan</td>
             <td>Tindakan</td>
           </tr>
         </thead>
@@ -41,10 +42,11 @@ const Products = () => {
             <td>Ini adalah semen</td>
             <td>2.000.000</td>
             <td>23.09.2025</td>
-            <td>Admin</td>
+            <td>200</td>
+               <td>Sak</td>
 
             <td>
-              <Link href="/">
+              <Link href="/dashboard/products/test">
                 <button className="bg-blue-900 py-1 px-3 rounded-lg border-none cursor-pointer mr-2">
                   Lihat
                 </button>
