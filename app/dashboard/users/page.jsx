@@ -28,13 +28,13 @@ const UsersPage = () => {
         <tbody>
           <tr className="p-3">
             <td>Nico Wanto</td>
-            <td>wanto@mail.com</td>
+            <td>wanto123user</td>
             <td>23.09.2025</td>
             <td>Admin</td>
             <td>Active</td>
 
             <td>
-              <Link href="/">
+              <Link href="/dashboard/users/test">
                 <button className="bg-blue-900 py-1 px-3 rounded-lg border-none cursor-pointer mr-2">
                   Lihat
                 </button>
