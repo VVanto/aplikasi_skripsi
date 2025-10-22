@@ -33,7 +33,10 @@ const userSchema = new mongoose.Schema(
 
 const productSchema = new mongoose.Schema(
   {
-    nama: {
+    img: {
+      type: String,
+    },
+    name: {
       type: String,
       required: true,
       unique: false,
@@ -47,7 +50,6 @@ const productSchema = new mongoose.Schema(
       min: 3,
       max: 20,
     },
-
     stok: {
       type: Number,
       required: true,
@@ -69,9 +71,17 @@ const productSchema = new mongoose.Schema(
       min: 0,
       max: 100000000,
     },
+    deskrip: {
+      type: String,
+      required: false,
+      unique: false,
+      min: 0,
+      max: 256,
+    },
   },
   { timestamps: true }
 );
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
-export const Product = mongoose.models.Product || mongoose.model("Product", productSchema);
+export const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);

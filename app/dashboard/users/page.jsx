@@ -3,9 +3,11 @@ import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
 
+
 const UsersPage = async ({ searchParams }) => {
   const q = searchParams?.q || "";
-  const users = await fetchUsers(q);
+  const page = searchParams?.page || 1;
+  const { count, users } = await fetchUsers(q, page);
 
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
@@ -51,7 +53,7 @@ const UsersPage = async ({ searchParams }) => {
           ))}
         </tbody>
       </table>
-      <Pagination />
+      <Pagination count={count} />
     </div>
   );
 };
