@@ -1,8 +1,8 @@
+import { deleteUser } from "@/app/lib/action";
 import { fetchUsers } from "@/app/lib/data";
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
-
 
 const UsersPage = async ({ searchParams }) => {
   const q = searchParams?.q || "";
@@ -45,9 +45,12 @@ const UsersPage = async ({ searchParams }) => {
                     Lihat
                   </button>
                 </Link>
-                <button className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer">
-                  Hapus
-                </button>
+                <form action={deleteUser}>
+                  <input type="hidden" name="id" value={(user.id)} />
+                  <button className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer">
+                    Hapus
+                  </button>
+                </form>
               </td>
             </tr>
           ))}

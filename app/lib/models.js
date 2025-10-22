@@ -33,9 +33,6 @@ const userSchema = new mongoose.Schema(
 
 const productSchema = new mongoose.Schema(
   {
-    img: {
-      type: String,
-    },
     name: {
       type: String,
       required: true,
@@ -43,7 +40,7 @@ const productSchema = new mongoose.Schema(
       min: 3,
       max: 20,
     },
-    cat: {
+    kate: {
       type: String,
       required: true,
       unique: false,

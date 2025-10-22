@@ -1,20 +1,23 @@
+import { addProduct } from "@/app/lib/action";
+
 const AddProductPage = () => {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5 ">
-      <form className="flex flex-wrap justify-between">
+      <form action={addProduct} className="flex flex-wrap justify-between">
         <input
           type="text"
-          placeholder="Nama Barang"
-          name="nama"
+          placeholder="Nama Produk"
+          name="name"
           className="bg-transparent w-5/12 border border-lightOlive p-7  rounded-lg mb-7"
           required
         />
         <select
-          name="cat"
-          id="cat"
+          name="kate"
+          id="kate"
           className="bg-transparent w-5/12 border  border-lightOlive p-7 rounded-lg mb-7"
+          required
         >
-          <option value="umum" disabled selected>
+          <option value="" disabled selected>
             Pilih Kategori
           </option>
           <option className="bg-olive " value="utama">

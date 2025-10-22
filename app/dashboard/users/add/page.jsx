@@ -1,7 +1,9 @@
+import { addUser } from "@/app/lib/action";
+
 const AddUserPage = () => {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
-      <form className="flex flex-wrap justify-between">
+      <form action={addUser} className="flex flex-wrap justify-between">
         <input
           type="text"
           placeholder="Nama Pengguna"
@@ -27,7 +29,7 @@ const AddUserPage = () => {
           id="role"
           className="bg-olive  w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
         >
-          <option value="false" disabled selected className="bg-olive">
+          <option  disabled selected className="bg-olive">
             Apakah ini akun admin ?
           </option>
           <option value={true} className="bg-olive ">

@@ -4,7 +4,7 @@ import { connectToDB } from "./utils";
 export const fetchUsers = async (q, page) => {
   const regex = new RegExp(q, "i");
 
-  const ITEM_PER_PAGE = 3;
+  const ITEM_PER_PAGE = 5;
 
   try {
     connectToDB();
@@ -20,10 +20,21 @@ export const fetchUsers = async (q, page) => {
   }
 };
 
+export const fetchUser = async (id) => {
+  try {
+    connectToDB();
+    const user = await User.findById(id);
+    return user;
+  } catch (err) {
+    console.log(err);
+    throw new Error("Gagal untuk mendapatkan data user !");
+  }
+};
+
 export const fetchProducts = async (q, page) => {
   const regex = new RegExp(q, "i");
 
-  const ITEM_PER_PAGE = 3;
+  const ITEM_PER_PAGE = 5;
 
   try {
     connectToDB();
@@ -35,6 +46,17 @@ export const fetchProducts = async (q, page) => {
     return { count, product };
   } catch (err) {
     console.log(err);
-    throw new Error("Gagal untuk mendapatkan data barang !");
+    throw new Error("Gagal untuk mendapatkan data produk !");
+  }
+};
+
+export const fetchProduct = async (id) => {
+  try {
+    connectToDB();
+    const product = await Product.findById(id);
+    return product;
+  } catch (err) {
+    console.log(err);
+    throw new Error("Gagal untuk mendapatkan data produk !");
   }
 };

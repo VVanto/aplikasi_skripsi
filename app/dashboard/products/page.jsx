@@ -1,21 +1,19 @@
+import { deleteProduct } from "@/app/lib/action";
 import { fetchProducts } from "@/app/lib/data";
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Image from "next/image";
 import Link from "next/link";
-import { searchParams } from "next/navigation";
 
 const ProductsPage = async ({ searchParams }) => {
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
   const { count, product } = await fetchProducts(q, page);
 
-
-
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between">
-        <Search placeholder="Cari Barang..." />
+        <Search placeholder="Cari Produk..." />
 
         <Link href="/dashboard/products/add">
           <button className="bg-sage p-2 border-none rounded-lg cursor-pointer">
@@ -26,12 +24,13 @@ const ProductsPage = async ({ searchParams }) => {
       <table className="w-full">
         <thead>
           <tr className="p-3">
-            <td>Nama Barang</td>
+            <td>Nama Produk</td>
+            <td>Kategori</td>
             <td>Deskripsi</td>
             <td>Harga</td>
             <td>Dibuat pada</td>
             <td>Stok</td>
-            <td>Satuan</td>
+
             <td>Tindakan</td>
           </tr>
         </thead>
@@ -50,11 +49,13 @@ const ProductsPage = async ({ searchParams }) => {
                   {product.name}
                 </div>
               </td>
+              <td>{product.kate}</td>
               <td>{product.deskrip}</td>
               <td>Rp {product.harga}</td>
               <td>{product.createdAt?.toString().slice(4, 25)}</td>
-              <td>{product.stok}</td>
-              <td>{product.satuan}</td>
+              <td>
+                {product.stok} {product.satuan}
+              </td>
 
               <td>
                 <Link href={`/dashboard/products/${product.id}`}>
@@ -62,12 +63,15 @@ const ProductsPage = async ({ searchParams }) => {
                     Lihat
                   </button>
                 </Link>
-                <button className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer">
-                  Hapus
-                </button>
+                <form action={deleteProduct}>
+                  <input type="hidden" name="id" value={product.id}/>
+                  <button className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer">
+                    Hapus
+                  </button>
+                </form>
               </td>
             </tr>
-          ))}{" "}
+          ))}
         </tbody>
       </table>
       <Pagination count={count} />
