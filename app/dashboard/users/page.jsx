@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 export default function UsersPage({ searchParams }) {
   const [users, setUsers] = useState([]);
+  const [count, setCount] = useState(0);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
@@ -14,16 +15,32 @@ export default function UsersPage({ searchParams }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetch("/api/users");
-        const response = await data.json();
-        console.log(response);
-        setUsers(response);
+        const res = await fetch(`/api/users?q=${encodeURIComponent(q)}&page=${page}`);
+        const data = await res.json();
+        setUsers(data.users || data); // Jika API return array langsung, pakai data; jika object {users, count}, pakai data.users
+        setCount(data.count || data.length); // Hitung total count dari data.count atau length jika all data
       } catch (error) {
         console.log(error);
       }
     };
     fetchData();
-  }, []);
+  }, [q, page]);
+
+  const handleDelete = async (id) => {
+    if (!confirm("Yakin ingin hapus user ini?")) return; // Konfirmasi sederhana
+    try {
+      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        throw new Error("Gagal hapus user");
+      }
+      setUsers(users.filter((user) => user.id !== id));
+      setCount((prevCount) => prevCount - 1);
+      alert("User berhasil dihapus!"); // Optional feedback
+    } catch (error) {
+      console.log(error);
+      alert("Error: " + error.message); // Tampilkan error ke user
+    }
+  };
 
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
@@ -71,8 +88,8 @@ export default function UsersPage({ searchParams }) {
           ))}
         </tbody>
       </table>
-{/* 
-      <Pagination count={count} /> */}
+
+      <Pagination count={count} />
     </div>
   );
 }

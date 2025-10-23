@@ -1,20 +1,57 @@
-import { deleteProduct } from "@/app/lib/action";
-import { fetchProducts } from "@/app/lib/data";
+"use client";
+
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-const ProductsPage = async ({ searchParams }) => {
+export default function ProductsPage({ searchParams }) {
+  const [products, setProducts] = useState([]);
+  const [count, setCount] = useState(0);
+
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
-  const { count, product } = await fetchProducts(q, page);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `/api/products?q=${encodeURIComponent(q)}&page=${page}`
+        );
+        if (!res.ok) {
+          throw new Error(`Gagal fetch produk: ${res.statusText}`);
+        }
+        const data = await res.json();
+        setProducts(data.products || []);
+        setCount(data.count || 0);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData();
+  }, [q, page]);
+
+  const handleDelete = async (id) => {
+    if (!confirm("Yakin ingin hapus produk ini?")) return;
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        throw new Error("Gagal hapus produk");
+      }
+      setProducts(products.filter((product) => product.id !== id));
+      setCount((prevCount) => prevCount - 1);
+      alert("Produk berhasil dihapus!");
+    } catch (error) {
+      console.log(error);
+      alert("Error: " + error.message);
+    }
+  };
 
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between">
         <Search placeholder="Cari Produk..." />
-
         <Link href="/dashboard/products/add">
           <button className="bg-sage p-2 border-none rounded-lg cursor-pointer">
             Tambahkan
@@ -30,12 +67,11 @@ const ProductsPage = async ({ searchParams }) => {
             <td>Harga</td>
             <td>Dibuat pada</td>
             <td>Stok</td>
-
             <td>Tindakan</td>
           </tr>
         </thead>
         <tbody>
-          {product.map((product) => (
+          {products.map((product) => (
             <tr key={product.id} className="p-3">
               <td>
                 <div className="flex items-center gap-3">
@@ -50,25 +86,24 @@ const ProductsPage = async ({ searchParams }) => {
                 </div>
               </td>
               <td>{product.kate}</td>
-              <td>{product.deskrip}</td>
+              <td>{product.deskrip || "-"}</td>
               <td>Rp {product.harga}</td>
-              <td>{product.createdAt?.toString().slice(4, 25)}</td>
+              <td>{new Date(product.createdAt).toString().slice(4, 25)}</td>
               <td>
                 {product.stok} {product.satuan}
               </td>
-
               <td>
                 <Link href={`/dashboard/products/${product.id}`}>
                   <button className="bg-blue-900 py-1 px-3 rounded-lg border-none cursor-pointer mr-2">
                     Lihat
                   </button>
                 </Link>
-                <form action={deleteProduct}>
-                  <input type="hidden" name="id" value={product.id}/>
-                  <button className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer">
-                    Hapus
-                  </button>
-                </form>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer"
+                >
+                  Hapus
+                </button>
               </td>
             </tr>
           ))}
@@ -77,6 +112,4 @@ const ProductsPage = async ({ searchParams }) => {
       <Pagination count={count} />
     </div>
   );
-};
-
-export default ProductsPage;
+}
