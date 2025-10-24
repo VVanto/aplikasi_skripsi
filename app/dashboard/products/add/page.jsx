@@ -28,7 +28,14 @@ const AddProductPage = () => {
       });
       if (res.ok) {
         alert("Produk berhasil ditambahkan!");
-        setFormData({ name: "", kate: "", desc: "", harga: "", stok: "", satuan: "" });
+        setFormData({
+          name: "",
+          kate: "",
+          desc: "",
+          harga: "",
+          stok: "",
+          satuan: "",
+        });
         router.push("/dashboard/products");
       } else {
         const errData = await res.json();
@@ -63,14 +70,14 @@ const AddProductPage = () => {
           <option value="" disabled>
             Pilih Kategori
           </option>
-          <option value="utama">Bahan Utama</option>
-          <option value="cat">Cat & Pelapis</option>
-          <option value="alat">Peralatan & Perkakas</option>
-          <option value="sanitasi">Sanitasi</option>
-          <option value="listrik">Kelistrikan</option>
-          <option value="kayu">Kayu & Logam</option>
-          <option value="inter">Interior & Finishing</option>
-          <option value="ekster">Eksterior</option>
+          <option value="Bahan Utama">Bahan Utama</option>
+          <option value="Cat & Pelapis">Cat & Pelapis</option>
+          <option value="Peralatan & Perkakas">Peralatan & Perkakas</option>
+          <option value="Sanitasi">Sanitasi</option>
+          <option value="Kelistrikan">Kelistrikan</option>
+          <option value="Kayu & Logam">Kayu & Logam</option>
+          <option value="Interior & Finishing">Interior & Finishing</option>
+          <option value="Eksterior">Eksterior</option>
         </select>
         <input
           type="number"

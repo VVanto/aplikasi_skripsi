@@ -2,7 +2,6 @@
 
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -48,6 +47,19 @@ export default function ProductsPage({ searchParams }) {
     }
   };
 
+  const formatPrice = (price) => {
+    if (!price && price !== 0) return "Rp 0";
+    return `Rp ${Number(price).toLocaleString("id-ID")}`;
+  };
+
+  const formatDate = (date) => {
+    if (!date || date === "0000-00-00 00:00:00") return "-";
+    const parsedDate = new Date(date);
+    return isNaN(parsedDate.getTime())
+      ? "-"
+      : parsedDate.toString().slice(4, 25);
+  };
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between">
@@ -73,22 +85,11 @@ export default function ProductsPage({ searchParams }) {
         <tbody>
           {products.map((product) => (
             <tr key={product.id} className="p-3">
-              <td>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/noavatar.png"
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="object-cover rounded-md"
-                  />
-                  {product.name}
-                </div>
-              </td>
+              <td>{product.name}</td>
               <td>{product.kate}</td>
               <td>{product.deskrip || "-"}</td>
-              <td>Rp {product.harga}</td>
-              <td>{new Date(product.createdAt).toString().slice(4, 25)}</td>
+              <td>{formatPrice(product.harga)}</td>
+              <td>{formatDate(product.createdAt)}</td>
               <td>
                 {product.stok} {product.satuan}
               </td>

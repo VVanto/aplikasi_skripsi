@@ -75,12 +75,6 @@ const SingleProductPage = () => {
 
   return (
     <div className="flex gap-5 mt-5">
-      <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max">
-        <div className="w-full h-[300px] relative rounded-lg overflow-hidden mb-5">
-          <Image src="/noavatar.png" alt="" fill />
-        </div>
-        {product.name}
-      </div>
       <div className="flex-[3] bg-olive p-5 rounded-lg">
         <form onSubmit={handleSubmit} className="flex flex-col">
           <input type="hidden" name="id" value={product.id} />
@@ -99,7 +93,9 @@ const SingleProductPage = () => {
             type="number"
             name="harga"
             value={formData.harga}
-            onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, harga: e.target.value })
+            }
             step="10000"
             min="0"
             required
@@ -148,7 +144,9 @@ const SingleProductPage = () => {
             cols="30"
             rows="5"
             value={formData.deskrip}
-            onChange={(e) => setFormData({ ...formData, deskrip: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, deskrip: e.target.value })
+            }
             className="bg-transparent w-full border border-lightOlive p-7 rounded-lg mb-7"
           />
           <label>Satuan</label>
@@ -157,7 +155,9 @@ const SingleProductPage = () => {
             type="text"
             name="satuan"
             value={formData.satuan}
-            onChange={(e) => setFormData({ ...formData, satuan: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, satuan: e.target.value })
+            }
             placeholder="e.g., pcs, kg"
             required
           />
