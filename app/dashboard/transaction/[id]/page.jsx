@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Loading from "../../loading";
 
 export default function SingleTransaksiPage() {
   const params = useParams();
@@ -53,7 +54,7 @@ export default function SingleTransaksiPage() {
   };
 
   if (loading) {
-    return <div className="bg-olive p-5 rounded-lg mt-5">Loading...</div>;
+    return <div className="bg-olive p-5 rounded-lg mt-5"><Loading/></div>;
   }
 
   if (error) {

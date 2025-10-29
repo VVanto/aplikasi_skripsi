@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Loading from "../../loading";
 
 const SingleUserPage = () => {
   const params = useParams();
@@ -63,7 +64,12 @@ const SingleUserPage = () => {
   };
 
   if (error) return <div>Error: {error}</div>;
-  if (!user) return <div>Loading...</div>;
+  if (!user)
+    return (
+      <div>
+        <Loading />
+      </div>
+    );
 
   return (
     <div className="flex gap-5 mt-5">

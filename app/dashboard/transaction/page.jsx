@@ -9,6 +9,7 @@ export default function TransaksiPage({ searchParams }) {
   const [transaksi, setTransaksi] = useState([]);
   const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
@@ -16,24 +17,27 @@ export default function TransaksiPage({ searchParams }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/transaction?q=${encodeURIComponent(q)}&page=${page}`);
-        if (!res.ok) {
-          throw new Error(`Gagal fetch transaksi: ${res.statusText}`);
-        }
+        const res = await fetch(
+          `/api/transaction?q=${encodeURIComponent(q)}&page=${page}`
+        );
+        if (!res.ok) throw new Error(`Gagal fetch: ${res.statusText}`);
+
         const data = await res.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
+        if (data.error) throw new Error(data.error);
+
         setTransaksi(Array.isArray(data.transaksi) ? data.transaksi : []);
         setCount(data.count || 0);
         setError(null);
-      } catch (error) {
-        console.log(error);
-        setError(error.message);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
         setTransaksi([]);
         setCount(0);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
   }, [q, page]);
 
@@ -58,6 +62,16 @@ export default function TransaksiPage({ searchParams }) {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-olive">
+        <div className="text-center">
+          <div className="loader"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between">
@@ -72,7 +86,7 @@ export default function TransaksiPage({ searchParams }) {
         <thead>
           <tr className="p-3">
             <td>Ditambahkan oleh User</td>
-         
+
             <td>Tanggal</td>
             <td>Total Harga</td>
             <td>Tindakan</td>
@@ -82,7 +96,7 @@ export default function TransaksiPage({ searchParams }) {
           {transaksi.map((trx) => (
             <tr key={trx.id} className="p-3">
               <td>{trx.name}</td>
-          
+
               <td>{formatDate(trx.createdAt)}</td>
               <td>{formatPrice(trx.totalHarga)}</td>
               <td>
