@@ -1,21 +1,17 @@
 "use client";
 
 import {
-  MdAnalytics,
   MdAttachMoney,
   MdDashboard,
-  MdHelpCenter,
   MdLogout,
-  MdOutlineSettings,
-  MdPeople,
   MdShoppingBag,
   MdSupervisedUserCircle,
-  MdWork,
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/dashboard/loading";
 
 const menuItems = [
   {
@@ -39,91 +35,104 @@ const menuItems = [
       },
     ],
   },
-  {
-    titles: "Analytics",
-    list: [
-      { title: "Revenue", path: "/dashboard/revenue", icon: <MdWork /> },
-      { title: "Reports", path: "/dashboard/reports", icon: <MdAnalytics /> },
-      { title: "Teams", path: "/dashboard/teams", icon: <MdPeople /> },
-    ],
-  },
-  {
-    titles: "User",
-    list: [
-      {
-        title: "Settings",
-        path: "/dashboard/settings",
-        icon: <MdOutlineSettings />,
-      },
-      { title: "Help", path: "/dashboard/help", icon: <MdHelpCenter /> },
-    ],
-  },
 ];
 
 const Sidebar = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          router.push("/login");
+        }
+      } catch {
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [router]);
+
+  const getRoleName = (role) => {
+    if (role === 1 || role === "1") return "Administrator";
+    if (role === 0 || role === "0") return "Staf";
+    return "User";
+  };
 
   const handleLogout = async () => {
-    if (loading) return;
-    setLoading(true);
-
+    if (logoutLoading) return;
+    setLogoutLoading(true);
     try {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        router.push("/login");
-      } else {
-        alert("Gagal logout. Coba lagi.");
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
-      alert("Koneksi gagal");
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (res.ok) router.push("/login");
+    } catch {
+      alert("Gagal logout");
     } finally {
-      setLoading(false);
+      setLogoutLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-5">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
-    <div className="sticky top-10 w-full">
-      <div className="flex items-center gap-5 mb-5">
-        <Image
-          src="/noavatar.png"
-          alt="Avatar"
-          width={50}
-          height={50}
-          className="rounded-full object-cover"
-        />
-        <div className="flex flex-col">
-          <span className="font-medium text-white">Wanto</span>
-          <span className="text-sm text-cream">Administrator</span>
+    <div className="sticky top-5 h-[calc(100vh-2.5rem)] flex flex-col justify-between">
+ 
+      <div>
+  
+        <div className="flex items-center gap-5 mb-5">
+          <Image
+            src="/noavatar.png"
+            alt="Avatar"
+            width={50}
+            height={50}
+            className="rounded-full object-cover"
+          />
+          <div className="flex flex-col">
+            <span className="font-medium">{user?.username || "User"}</span>
+            <span className="text-sm text-cream">
+              {getRoleName(user?.role)}
+            </span>
+          </div>
         </div>
+
+        {/* MENU */}
+        <ul className="list-none">
+          {menuItems.map((cat) => (
+            <li key={cat.titles}>
+              <span className="text-cream text-lg font-semibold my-3 block">
+                {cat.titles}
+              </span>
+              {cat.list.map((item) => (
+                <MenuLink item={item} key={item.title} />
+              ))}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <ul className="list-none">
-        {menuItems.map((cat) => (
-          <li key={cat.titles}>
-            <span className="text-cream text-lg font-semibold my-3 block">
-              {cat.titles}
-            </span>
-            {cat.list.map((item) => (
-              <MenuLink item={item} key={item.title} />
-            ))}
-          </li>
-        ))}
-        <li></li>
-      </ul>
-
+      {/* BAGIAN BAWAH */}
       <button
         onClick={handleLogout}
-        disabled={loading}
-        className="px-5 py-3 my-2 flex items-center gap-2 hover:bg-lightOlive rounded-lg transition-all"
+        disabled={logoutLoading}
+        className="px-5 py-3 flex items-center gap-2 hover:bg-lightOlive rounded-lg transition-all disabled:opacity-50"
       >
-        {loading ? <div className="loader w-4 h-4"></div> : <MdLogout />}
-        <span>{loading ? "Memuat..." : "Logout"}</span>
+        {logoutLoading ? <div className="loader w-4 h-4"></div> : <MdLogout />}
+        <span>{logoutLoading ? "Memuat..." : "Logout"}</span>
       </button>
     </div>
   );

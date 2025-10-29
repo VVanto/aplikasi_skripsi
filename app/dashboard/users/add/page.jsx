@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const AddUserPage = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -18,9 +20,11 @@ const AddUserPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+
       if (res.ok) {
         alert("User berhasil ditambahkan!");
         setFormData({ name: "", username: "", password: "", role: "" });
+        router.push("/dashboard/users"); // ⬅️ langsung balik ke dashboard
       } else {
         alert("Gagal menambahkan user!");
       }
@@ -41,16 +45,27 @@ const AddUserPage = () => {
           className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
           required
         />
-        <input
-          type="text"
-          placeholder="Username"
-          name="username"
-          value={formData.username}
-          onChange={(e) =>
-            setFormData({ ...formData, username: e.target.value })
-          }
-          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-        />
+
+        <div className="w-5/12 mb-7 relative">
+          <input
+            type="text"
+            placeholder="Username (maks. 12 karakter)"
+            name="username"
+            value={formData.username}
+            onChange={(e) => {
+              if (e.target.value.length <= 12) {
+                setFormData({ ...formData, username: e.target.value });
+              }
+            }}
+            maxLength={12}
+            className="bg-transparent border border-lightOlive p-7 w-full rounded-lg"
+            required
+          />
+          <span className="absolute right-3 bottom-2 text-xs text-gray-400">
+            {formData.username.length}/12
+          </span>
+        </div>
+
         <input
           type="password"
           placeholder="Password"

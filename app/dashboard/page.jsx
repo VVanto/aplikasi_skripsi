@@ -1,4 +1,5 @@
-import Card from "../ui/dashboard/card/card";
+import MonthlySalesCard from "../ui/dashboard/card/monthlyCard";
+import TopProductCard from "../ui/dashboard/card/topCard";
 import Chart from "../ui/dashboard/chart/chart";
 import RightBar from "../ui/dashboard/rightBar/rightBar";
 import Transaction from "./transaction/page";
@@ -8,9 +9,8 @@ const DashboardPage = () => {
     <div className="flex gap-5 mt-5">
       <div className="flex flex-[3] flex-col gap-5">
         <div className="flex gap-5 content-between">
-          <Card />
-          <Card />
-          <Card />
+          <TopProductCard />
+          <MonthlySalesCard />
         </div>
         <Transaction />
         <Chart />

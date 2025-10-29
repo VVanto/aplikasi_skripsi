@@ -75,7 +75,7 @@ export default function TransaksiPage({ searchParams }) {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between">
-        <Search placeholder="Cari Nama atau Username..." />
+        <Search placeholder="Cari Nama..." />
         <Link href="/dashboard/transaction/add">
           <button className="bg-sage p-2 border-none rounded-lg cursor-pointer">
             Tambahkan
