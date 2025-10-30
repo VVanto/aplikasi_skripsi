@@ -1,3 +1,4 @@
+import ForecastStockCard from "../ui/dashboard/card/ForecastStockCard";
 import MonthlySalesCard from "../ui/dashboard/card/monthlyCard";
 import TopProductCard from "../ui/dashboard/card/topCard";
 import Chart from "../ui/dashboard/chart/chart";
@@ -11,8 +12,8 @@ const DashboardPage = () => {
         <div className="flex gap-5 content-between">
           <TopProductCard />
           <MonthlySalesCard />
+          <ForecastStockCard/>
         </div>
-        <Transaction />
         <Chart />
       </div>
       <div className="flex-1">

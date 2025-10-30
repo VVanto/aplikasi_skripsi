@@ -68,13 +68,11 @@ export default function SingleTransaksiPage() {
   return (
     <div className="flex gap-5 mt-5">
       <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max">
-        <div className="w-full h-[300px] relative rounded-lg overflow-hidden mb-5">
-          <Image src="/noavatar.png" alt="" fill />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">
+     
+        <h2 className="text-2xl font-bold mb-20">
           Detail Transaksi #{transaksi.id}
         </h2>
-        <p>Nama User: {transaksi.name}</p>
+        <p>Ditambahkan oleh: {transaksi.name}</p>
         <p>Username: {transaksi.username}</p>
         <p>Tanggal: {formatDate(transaksi.createdAt)}</p>
         <p>Total Harga: {formatPrice(transaksi.totalHarga)}</p>
@@ -84,7 +82,7 @@ export default function SingleTransaksiPage() {
         <table className="w-full">
           <thead>
             <tr className="p-3">
-              <td>ID</td>
+              <td>ID Barang</td>
               <td>Nama Barang</td>
               <td>Kategori</td>
               <td>Jumlah Barang</td>

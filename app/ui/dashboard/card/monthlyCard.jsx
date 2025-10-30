@@ -29,14 +29,13 @@ const MonthlySalesCard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatRupiah = (num) =>
-    `Rp ${Number(num).toLocaleString("id-ID")}`;
+  const formatRupiah = (num) => `Rp ${Number(num).toLocaleString("id-ID")}`;
 
   const isPositive = data.percentageChange >= 0;
 
   if (loading) {
     return (
-   <div className="bg-olive p-5 rounded-lg flex gap-5 animate-pulse">
+      <div className="bg-olive p-5 rounded-lg flex gap-5 animate-pulse">
         <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
         <div className="flex flex-col gap-2 flex-1">
           <div className="h-4 bg-gray-700 rounded w-32"></div>
@@ -48,20 +47,18 @@ const MonthlySalesCard = () => {
 
   return (
     <div className="bg-olive p-14 rounded-lg flex cursor-pointer hover:bg-lightOlive transition-all">
-    
       <div className="flex flex-col gap-3">
-        <span className=" text-lg font-medium">
-          Penjualan Bulan Ini
-        </span>
+        <span className=" text-lg font-medium">Penjualan Bulan Ini</span>
         <span className="text-3xl font-medium ">
           {formatRupiah(data.total)}
         </span>
         <span className="text-xl font-light ">
-          <span className={isPositive ? "text-green-400" : "text-red-400"}>
+          <span className={isPositive ? "text-green" : "text-red"}>
             {isPositive ? "+" : ""}
             {data.percentageChange}%
           </span>
-            dari bulan lalu
+          <span> </span>
+          dari bulan lalu
         </span>
       </div>
     </div>

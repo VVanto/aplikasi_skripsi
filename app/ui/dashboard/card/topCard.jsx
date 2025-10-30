@@ -49,7 +49,7 @@ const TopProductCard = () => {
           {product.name}
         </span>
         <span className="text-xl font-light">
-          <span className="text-yellow-400 font-semibold">{product.sales}</span> kali dibeli
+          <span className="text-yellow-400 font-semibold">{product.sales}</span> pembelian
         </span>
       </div>
     </div>

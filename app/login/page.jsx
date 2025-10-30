@@ -73,7 +73,7 @@ export default function LoginPage() {
     <div className="w-full h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="bg-olive p-12 rounded-lg w-[500px] h-[500px] flex flex-col justify-center">
         <h1 className="text-6xl  mb-16 text-center">Login</h1>
-        {error && <p className="text-red-500 mb-4 bg-red-900/20 p-3 rounded-lg text-center">{error}</p>}
+        {error && <p className="text-red-500 mb-4 bg-red p-3 rounded-lg text-center">{error}</p>}
         <input
           typze="text"
           placeholder="Username"

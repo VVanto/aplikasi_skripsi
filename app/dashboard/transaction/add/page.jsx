@@ -5,25 +5,21 @@ import { useRouter } from "next/navigation";
 
 export default function AddTransaksiPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    tanggal: "",
-  });
+  const [formData, setFormData] = useState({ tanggal: "" });
   const [items, setItems] = useState([
-    { barangId: "", jumlahBarang: "", hargaSatuan: "", subTotal: 0 }
+    { barangId: "", jumlahBarang: "", hargaSatuan: "", subTotal: 0 },
   ]);
   const [products, setProducts] = useState([]);
   const [totalHarga, setTotalHarga] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch products
+ 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await fetch("/api/products?limit=1000");
-        if (!res.ok) {
-          throw new Error("Gagal fetch products");
-        }
+        if (!res.ok) throw new Error("Gagal fetch products");
         const data = await res.json();
         setProducts(Array.isArray(data.products) ? data.products : []);
       } catch (err) {
@@ -34,7 +30,6 @@ export default function AddTransaksiPage() {
     fetchProducts();
   }, []);
 
-  // Update total harga otomatis
   useEffect(() => {
     const newTotal = items.reduce((sum, item) => sum + (item.subTotal || 0), 0);
     setTotalHarga(newTotal);
@@ -43,7 +38,7 @@ export default function AddTransaksiPage() {
   const addItem = () => {
     setItems([
       ...items,
-      { barangId: "", jumlahBarang: "", hargaSatuan: "", subTotal: 0 }
+      { barangId: "", jumlahBarang: "", hargaSatuan: "", subTotal: 0 },
     ]);
   };
 
@@ -59,58 +54,89 @@ export default function AddTransaksiPage() {
 
   const updateItem = (index, field, value) => {
     const newItems = [...items];
+    const oldBarangId = newItems[index].barangId;
+
+    // Jika pilih barang yang sudah ada di item lain → merge jumlah
+    if (field === "barangId" && value) {
+      const existingIndex = newItems.findIndex(
+        (item, i) => i !== index && item.barangId === value
+      );
+
+      if (existingIndex !== -1) {
+        // Ambil jumlah lama + jumlah baru
+        const oldJumlah = parseInt(newItems[existingIndex].jumlahBarang) || 0;
+        const newJumlah = parseInt(newItems[index].jumlahBarang) || 0;
+        const mergedJumlah = oldJumlah + newJumlah;
+
+        const product = products.find((p) => p.id == value);
+        if (product) {
+          // Cek stok
+          if (mergedJumlah > product.stok) {
+            setError(
+              `Stok ${product.name} tidak cukup. Tersedia: ${product.stok}, Total diminta: ${mergedJumlah}`
+            );
+            return;
+          }
+
+          // Update item yang sudah ada
+          newItems[existingIndex].jumlahBarang = mergedJumlah;
+          newItems[existingIndex].subTotal = mergedJumlah * product.harga;
+
+          // Hapus item yang sedang diedit (karena digabung)
+          newItems.splice(index, 1);
+          setItems(newItems);
+          setError(null);
+          return;
+        }
+      }
+    }
+
+    // Update normal
     newItems[index][field] = value;
 
     if (field === "barangId") {
-      // Auto-fill harga satuan dari produk yang dipilih (READ-ONLY)
       const selectedProduct = products.find((p) => p.id == value);
       if (selectedProduct) {
         newItems[index].hargaSatuan = selectedProduct.harga;
-        // Hitung subtotal jika jumlah sudah diisi
         const jumlah = parseInt(newItems[index].jumlahBarang) || 0;
         newItems[index].subTotal = jumlah * selectedProduct.harga;
       }
     }
 
     if (field === "jumlahBarang") {
-      // Hitung subtotal otomatis saat jumlah berubah
       const jumlah = parseInt(value) || 0;
       const harga = parseFloat(newItems[index].hargaSatuan) || 0;
       newItems[index].subTotal = jumlah * harga;
+
+      // Cek stok saat jumlah berubah
+      const product = products.find((p) => p.id == newItems[index].barangId);
+      if (product && jumlah > product.stok) {
+        setError(
+          `Stok ${product.name} tidak cukup. Tersedia: ${product.stok}, Diminta: ${jumlah}`
+        );
+      } else {
+        setError(null);
+      }
     }
 
     setItems(newItems);
   };
 
   const validateStock = () => {
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    for (const item of items) {
       const product = products.find((p) => p.id == item.barangId);
-      
       if (!product) {
-        setError(`Item ${i + 1}: Produk tidak ditemukan`);
+        setError("Produk tidak ditemukan");
         return false;
       }
-
       const jumlah = parseInt(item.jumlahBarang) || 0;
       if (jumlah > product.stok) {
         setError(
-          `Item ${i + 1} (${product.name}): Stok tidak mencukupi. Tersedia: ${product.stok}, Diminta: ${jumlah}`
+          `Stok ${product.name} tidak cukup. Tersedia: ${product.stok}, Diminta: ${jumlah}`
         );
         return false;
       }
-
-      if (jumlah <= 0) {
-        setError(`Item ${i + 1}: Jumlah barang harus lebih dari 0`);
-        return false;
-      }
-
-      if (!item.hargaSatuan || parseFloat(item.hargaSatuan) <= 0) {
-        setError(`Item ${i + 1}: Harga satuan tidak valid`);
-        return false;
-      }
     }
-
     return true;
   };
 
@@ -123,14 +149,12 @@ export default function AddTransaksiPage() {
       return;
     }
 
-    if (items.some((item) => !item.barangId || !item.jumlahBarang || !item.hargaSatuan)) {
-      setError("Semua item harus lengkap (barang dan jumlah)");
+    if (items.some((item) => !item.barangId || !item.jumlahBarang)) {
+      setError("Semua item harus lengkap");
       return;
     }
 
-    if (!validateStock()) {
-      return;
-    }
+    if (!validateStock()) return;
 
     setLoading(true);
 
@@ -140,7 +164,7 @@ export default function AddTransaksiPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tanggal: formData.tanggal,
-          items: items.map(item => ({
+          items: items.map((item) => ({
             barangId: parseInt(item.barangId),
             jumlahBarang: parseInt(item.jumlahBarang),
             hargaSatuan: parseFloat(item.hargaSatuan),
@@ -158,7 +182,6 @@ export default function AddTransaksiPage() {
         setError(data.error || "Gagal menambahkan transaksi");
       }
     } catch (error) {
-      console.error("Submit error:", error);
       setError("Error: " + error.message);
     } finally {
       setLoading(false);
@@ -166,111 +189,139 @@ export default function AddTransaksiPage() {
   };
 
   return (
-    <div className="bg-olive p-5 rounded-lg mt-5">
+    <div className="bg-olive p-5 rounded-lg mt-5 max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="flex flex-col">
-        <h2 className="text-xl font-bold mb-4">Tambah Transaksi</h2>
-        
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          Tambah Transaksi
+        </h2>
+
         {error && (
-          <div className="bg-red-900/50 border border-red-500 text-red-200 p-4 rounded-lg mb-4">
+          <div className="bg-red border border-red-500 text-red-200 p-4 rounded-lg mb-4 text-sm">
             {error}
           </div>
         )}
 
-        <label className="mb-2 font-semibold">Tanggal & Waktu Transaksi</label>
-        <input
-          type="datetime-local"
-          name="tanggal"
-          value={formData.tanggal}
-          onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-          className="bg-transparent border border-lightOlive p-3 rounded-lg mb-4"
-          required
-        />
+        <div className="mb-6">
+          <label className="block mb-2 font-semibold">Tanggal & Waktu</label>
+          <input
+            type="datetime-local"
+            value={formData.tanggal}
+            onChange={(e) =>
+              setFormData({ ...formData, tanggal: e.target.value })
+            }
+            className="bg-transparent border border-lightOlive p-3 rounded-lg w-full"
+            required
+          />
+        </div>
 
-        <h3 className="text-lg font-bold mb-2">Daftar Item</h3>
-        
+        <h3 className="text-lg font-bold mb-4">Daftar Item</h3>
+
         {items.map((item, index) => {
           const selectedProduct = products.find((p) => p.id == item.barangId);
-          
+
           return (
             <div
               key={index}
-              className="flex flex-col gap-3 mb-4 border border-lightOlive p-4 rounded-lg"
+              className="border border-lightOlive p-5 rounded-lg mb-4 bg-olive/50"
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold">Item #{index + 1}</span>
+              <div className="flex justify-between items-center mb-3">
+                <span className="font-semibold text-lg">Item #{index + 1}</span>
                 {items.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
-                    className="bg-red-800 hover:bg-red-700 px-4 py-2 rounded-lg  text-sm"
+                    className="bg-red hover:bg-red px-4 py-2 rounded-lg text-sm transition"
                   >
-                    Hapus
+                    Hapus Item
                   </button>
                 )}
               </div>
 
-              {/* Pilih Barang */}
-              <div>
-                <label className="block mb-1 text-sm">Pilih Barang</label>
-                <select
-                  name="barangId"
-                  value={item.barangId}
-                  onChange={(e) => updateItem(index, "barangId", e.target.value)}
-                  className="bg-transparent w-full border border-lightOlive p-3 rounded-lg "
-                  required
-                >
-                  <option value="" disabled className="bg-olive">
-                    -- Pilih Barang --
-                  </option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id} className="bg-olive">
-                      {product.name} - Stok: {product.stok} (Rp{" "}
-                      {Number(product.harga).toLocaleString("id-ID")})
-                    </option>
-                  ))}
-                </select>
-                {selectedProduct && (
-                  <p className="text-sm text-gray-300 mt-1">
-                    Stok tersedia: <span className="font-bold">{selectedProduct.stok}</span>{" "}
-                    {selectedProduct.satuan}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {/* Jumlah Barang */}
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1 text-sm">Jumlah</label>
+                  <label className="block mb-1 text-sm font-medium">
+                    Pilih Barang
+                  </label>
+                  <select
+                    value={item.barangId}
+                    onChange={(e) =>
+                      updateItem(index, "barangId", e.target.value)
+                    }
+                    className="bg-transparent border border-lightOlive p-3 rounded-lg w-full text-sm"
+                    required
+                  >
+                    <option value="" disabled>
+                      -- Pilih Barang --
+                    </option>
+                    {products.map((product) => {
+                      const isSelected = items.some(
+                        (it, i) => i !== index && it.barangId == product.id
+                      );
+                      return (
+                        <option
+                          key={product.id}
+                          value={product.id}
+                          disabled={isSelected}
+                          className={isSelected ? "text-gray-500" : "bg-olive"}
+                        >
+                          {product.name} - Stok: {product.stok} (
+                          {product.satuan})
+                          {isSelected ? " (sudah dipilih)" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {selectedProduct && (
+                    <p className="text-xs text-cream/70 mt-1">
+                      Harga: Rp{" "}
+                      {Number(selectedProduct.harga).toLocaleString("id-ID")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-sm font-medium">
+                    Jumlah
+                  </label>
                   <input
                     type="number"
                     placeholder="0"
                     value={item.jumlahBarang}
-                    onChange={(e) => updateItem(index, "jumlahBarang", e.target.value)}
-                    className="bg-transparent w-full border border-lightOlive p-3 rounded-lg "
+                    onChange={(e) =>
+                      updateItem(index, "jumlahBarang", e.target.value)
+                    }
+                    className="bg-transparent border border-lightOlive p-3 rounded-lg w-full"
                     required
                     min="1"
                     max={selectedProduct ? selectedProduct.stok : undefined}
                   />
                 </div>
+              </div>
 
-                {/* ✅ Harga Satuan (READ-ONLY, tidak bisa diubah) */}
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block mb-1 text-sm">Harga Satuan</label>
                   <input
                     type="text"
-                    value={item.hargaSatuan ? `Rp ${Number(item.hargaSatuan).toLocaleString("id-ID")}` : "Rp 0"}
-                    className="bg-gray-700 w-full border border-lightOlive p-3 rounded-lg  cursor-not-allowed"
+                    value={
+                      item.hargaSatuan
+                        ? `Rp ${Number(item.hargaSatuan).toLocaleString(
+                            "id-ID"
+                          )}`
+                        : "Rp 0"
+                    }
+                    className="bg-gray-700 border border-lightOlive p-3 rounded-lg w-full cursor-not-allowed text-sm"
                     readOnly
                   />
                 </div>
-
-                {/* ✅ Sub Total (READ-ONLY, auto-calculate) */}
                 <div>
                   <label className="block mb-1 text-sm">Sub Total</label>
                   <input
                     type="text"
-                    value={`Rp ${Number(item.subTotal).toLocaleString("id-ID")}`}
-                    className="bg-gray-700 w-full border border-lightOlive p-3 rounded-lg cursor-not-allowed"
+                    value={`Rp ${Number(item.subTotal).toLocaleString(
+                      "id-ID"
+                    )}`}
+                    className="bg-gray-700 border border-lightOlive p-3 rounded-lg w-full cursor-not-allowed text-sm"
                     readOnly
                   />
                 </div>
@@ -282,23 +333,21 @@ export default function AddTransaksiPage() {
         <button
           type="button"
           onClick={addItem}
-          className="bg-blue-900 hover:bg-blue-800 p-3 rounded-lg  mb-4"
+          className="bg-blue-900 hover:bg-blue-800 p-3 rounded-lg mb-4 font-medium transition"
         >
-          + Tambah Item
+          + Tambah Item Baru
         </button>
 
-        {/* Total Harga */}
-        <div className="bg-sage/30 border border-sage p-4 rounded-lg mb-4">
+        <div className=" p-5 rounded-lg mb-6 text-left">
           <p className="text-2xl font-bold">
             Total Harga: Rp {Number(totalHarga).toLocaleString("id-ID")}
           </p>
         </div>
 
-        {/* Submit Button */}
         <button
-          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg cursor-pointer border-none  font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           type="submit"
-          disabled={loading}
+          disabled={loading || items.length === 0}
+          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Menyimpan..." : "Simpan Transaksi"}
         </button>

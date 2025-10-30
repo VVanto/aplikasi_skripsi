@@ -1,174 +1,197 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Loading from "../../loading";
 
 const SingleProductPage = () => {
-  const params = useParams();
-  const { id } = params;
-  const router = useRouter();
-
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    kate: "",
+  const [form, setForm] = useState({
+    stok: "",
     deskrip: "",
     harga: "",
-    stok: "",
-    satuan: "",
+    stok_maksimal: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+ 
+  const loadProduct = async () => {
+    setFetching(true);
+    try {
+      const res = await fetch(`/api/products/${id}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Gagal memuat produk");
+      const data = await res.json();
+      setProduct(data);
+      setForm({
+        stok: data.stok ?? 0,
+        deskrip: data.deskrip ?? "",
+        harga: data.harga ?? 0,
+        stok_maksimal: data.stok_maksimal ?? 100,
+      });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        const res = await fetch(`/api/products/${id}`);
-        if (!res.ok) {
-          throw new Error(`Gagal fetch produk: ${res.statusText}`);
-        }
-        const data = await res.json();
-        setProduct(data);
-        setFormData({
-          name: data.name || "",
-          kate: data.kate || "",
-          deskrip: data.deskrip || "",
-          harga: data.harga || "",
-          stok: data.stok || "",
-          satuan: data.satuan || "",
-        });
-      } catch (err) {
-        console.log(err);
-        setError(err.message);
-      }
-    };
     loadProduct();
   }, [id]);
 
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.stok < 0) {
+      alert("Stok tidak boleh negatif");
+      return;
+    }
+    if (form.harga < 0) {
+      alert("Harga tidak boleh negatif");
+      return;
+    }
+    if (form.stok_maksimal <= 0) {
+      alert("Stok maksimal harus > 0");
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await fetch(`/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          harga: parseFloat(formData.harga), // Pastikan numerik
-          stok: parseInt(formData.stok), // Pastikan numerik
+          stok: parseInt(form.stok),
+          deskrip: form.deskrip || null,
+          harga: parseFloat(form.harga),
+          stok_maksimal: parseInt(form.stok_maksimal),
         }),
       });
+
       if (res.ok) {
         alert("Produk berhasil diupdate!");
-        router.push("/dashboard/products");
+        await loadProduct(); // Reload data
       } else {
-        const errData = await res.json();
-        alert(`Gagal update produk: ${errData.error || res.statusText}`);
+        const err = await res.json();
+        alert(err.error || "Gagal update");
       }
     } catch (error) {
-      console.log(error);
       alert("Error: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (error) return <div>Error: {error}</div>;
+ 
+  if (fetching) return <Loading />;
   if (!product)
     return (
-      <div>
-        <Loading />
+      <div className="text-center p-10 text-red-400">
+        Produk tidak ditemukan
       </div>
     );
 
+  const percentage = Math.round((form.stok / form.stok_maksimal) * 100);
+
   return (
-    <div className="flex gap-5 mt-5">
-      <div className="flex-[3] bg-olive p-5 rounded-lg">
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <input type="hidden" name="id" value={product.id} />
-          <label>Nama Produk</label>
-          <input
-            className="p-5 border border-lightOlive rounded-lg bg-olive my-3 "
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <label>Harga</label>
-          <input
-            className="p-5 border border-lightOlive rounded-lg bg-olive my-3 "
-            type="number"
-            name="harga"
-            value={formData.harga}
-            onChange={(e) =>
-              setFormData({ ...formData, harga: e.target.value })
-            }
-            step="10000"
-            min="0"
-            required
-          />
-          <label>Stok</label>
-          <input
-            className="p-5 border border-lightOlive rounded-lg bg-olive my-3 "
-            type="number"
-            name="stok"
-            value={formData.stok}
-            onChange={(e) => setFormData({ ...formData, stok: e.target.value })}
-            min="0"
-            required
-          />
-          <label>Kategori</label>
-          <select
-            name="kate"
-            id="kate"
-            className="p-5 border border-lightOlive rounded-lg bg-olive my-3"
-            value={formData.kate}
-            onChange={(e) => setFormData({ ...formData, kate: e.target.value })}
-            required
+    <div className="flex gap-6 mt-5">
+   
+      <div className="flex-1 bg-olive p-6 rounded-lg space-y-4">
+        <h2 className="text-3xl font-bold text-cream">{product.name}</h2>
+        <div className="grid grid-cols-2 gap-4 text-xl">
+          <div>
+            <p className="text-cream/70">Kategori</p>
+            <p className="font-semibold">{product.kate}</p>
+          </div>
+          <div>
+            <p className="text-cream/70">Satuan</p>
+            <p className="font-semibold">{product.satuan}</p>
+          </div>
+        </div>
+
+
+        <div className="mt-6">
+          <p className="text-cream/70 text-sm mb-1">Persentase Stok</p>
+          <div className="w-full bg-gray-700 rounded-full h-3">
+            <div
+              className={`h-3 rounded-full transition-all ${
+                percentage < 10 ? "bg-red-500" : "bg-sage"
+              }`}
+              style={{ width: `${Math.min(percentage, 100)}%` }}
+            />
+          </div>
+          <p className="text-md text-cream/60 mt-1 text-right">
+            {percentage}% tersisa ({form.stok} / {form.stok_maksimal})
+          </p>
+        </div>
+      </div>
+
+
+      <div className="flex-1 bg-olive p-6 rounded-lg">
+        <h3 className="text-xl font-bold mb-4 text-cream">Edit Produk</h3>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-cream/80 mb-1">Stok Saat Ini</label>
+            <input
+              type="number"
+              value={form.stok}
+              onChange={(e) => setForm({ ...form, stok: e.target.value })}
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg text-cream focus:outline-none focus:border-sage"
+              min="0"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-cream/80 mb-1">Stok Maksimal</label>
+            <input
+              type="number"
+              value={form.stok_maksimal}
+              onChange={(e) =>
+                setForm({ ...form, stok_maksimal: e.target.value })
+              }
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg text-cream focus:outline-none focus:border-sage"
+              min="1"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-cream/80 mb-1">Harga (Rp)</label>
+            <input
+              type="number"
+              value={form.harga}
+              onChange={(e) => setForm({ ...form, harga: e.target.value })}
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg  focus:outline-none focus:border-sage"
+              min="0"
+              step="1000"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-cream/80 mb-1">Deskripsi</label>
+            <textarea
+              value={form.deskrip}
+              onChange={(e) => setForm({ ...form, deskrip: e.target.value })}
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg  resize-none focus:outline-none focus:border-sage"
+              rows="4"
+              placeholder="Opsional..."
+              disabled={loading}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full p-3 bg-sage hover:bg-sage/80 disabled:bg-gray-600 rounded-lg font-bold  transition disabled:cursor-not-allowed"
           >
-            <option value="" disabled>
-              Pilih Kategori
-            </option>
-            {[
-              "Bahan Utama",
-              "Cat & Pelapis",
-              "Peralatan & Perkakas",
-              "Sanitasi",
-              "Kelistrikan",
-              "Kayu & Logam",
-              "Interior & Finishing",
-              "Eksterior",
-            ].map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <label>Deskripsi</label>
-          <textarea
-            name="deskrip"
-            id="deskrip"
-            cols="30"
-            rows="5"
-            value={formData.deskrip}
-            onChange={(e) =>
-              setFormData({ ...formData, deskrip: e.target.value })
-            }
-            className="bg-transparent w-full border border-lightOlive p-7 rounded-lg mb-7"
-          />
-          <label>Satuan</label>
-          <input
-            className="p-5 border border-lightOlive rounded-lg bg-olive my-3 "
-            type="text"
-            name="satuan"
-            value={formData.satuan}
-            onChange={(e) =>
-              setFormData({ ...formData, satuan: e.target.value })
-            }
-            placeholder="e.g., pcs, kg"
-            required
-          />
-          <button className="w-full mt-5 p-5 cursor-pointer bg-sage rounded-lg">
-            Update
+            {loading ? "Menyimpan..." : "Simpan Perubahan"}
           </button>
         </form>
       </div>

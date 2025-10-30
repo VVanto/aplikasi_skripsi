@@ -101,7 +101,7 @@ export default function ProductsPage({ searchParams }) {
                 </Link>
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer"
+                  className="bg-red py-1 px-3 rounded-lg border-none cursor-pointer"
                 >
                   Hapus
                 </button>

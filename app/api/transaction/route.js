@@ -12,7 +12,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page")) || 1;
-    const limit = 5;
+    const limit = 8;
 
     // Ambil koneksi dari pool
     db = await getConnection();

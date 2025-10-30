@@ -13,6 +13,8 @@ module.exports = {
         lightOlive: "#5c5e54",
         cream: "#ECDFCC",
         sage: "#005956",
+        red: "#C5172E",
+        green: "#93DA97",
       },
     },
   },

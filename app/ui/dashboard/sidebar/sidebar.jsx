@@ -3,6 +3,7 @@
 import {
   MdAttachMoney,
   MdDashboard,
+  MdHistory,
   MdLogout,
   MdShoppingBag,
   MdSupervisedUserCircle,
@@ -19,19 +20,24 @@ const menuItems = [
     list: [
       { title: "Dashboard", path: "/dashboard", icon: <MdDashboard /> },
       {
-        title: "Users",
+        title: "Pengguna",
         path: "/dashboard/users",
         icon: <MdSupervisedUserCircle />,
       },
       {
-        title: "Products",
+        title: "Produk",
         path: "/dashboard/products",
         icon: <MdShoppingBag />,
       },
       {
-        title: "Transactions",
+        title: "Transaksi",
         path: "/dashboard/transaction",
         icon: <MdAttachMoney />,
+      },
+         {
+        title: "Log Aktivitas",
+        path: "/dashboard/log",
+        icon: <MdHistory/>,
       },
     ],
   },

@@ -35,10 +35,8 @@ const Chart = () => {
     fetchData();
   }, []);
 
-  // Format Rupiah
   const formatRupiah = (value) => `Rp ${(value || 0).toLocaleString("id-ID")}`;
 
-  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -65,7 +63,7 @@ const Chart = () => {
     return (
       <div className="h-[450px] bg-olive text-cream rounded-lg p-5 flex items-center justify-center">
         <p className="text-red-400">
-          {error || "Belum ada transaksi"}
+          {error || "Belum ada transaksi bulan ini"}
         </p>
       </div>
     );
@@ -73,29 +71,28 @@ const Chart = () => {
 
   return (
     <div className="h-[450px] bg-olive text-cream rounded-lg p-5">
-      <h2 className="mb-5 text-xl font-semibold">Riwayat Transaksi</h2>
+      <h2 className="mb-5 text-xl font-semibold">
+        Penjualan per Minggu - {new Date().toLocaleString("id-ID", { month: "long", year: "numeric" })}
+      </h2>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis 
             dataKey="name" 
-            stroke="#ccc" 
-            angle={-45} 
-            textAnchor="end" 
-            height={80}
-            fontSize={12}
+            stroke="#b2c8c1"
+            tick={{ fontSize: 13 }}
           />
-          <YAxis stroke="#ed2788" tickFormatter={formatRupiah} />
+          <YAxis stroke="#b2c8c1" tickFormatter={formatRupiah} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Line
             type="monotone"
             dataKey="total"
-            stroke="#ed2788"
-            name="Total Harga"
-            strokeWidth={2}
-            dot={{ fill: "#ed2788", r: 4 }}
-            activeDot={{ r: 6 }}
+            stroke="#b2c8c1"
+            name="Total Penjualan"
+            strokeWidth={3}
+            dot={{ fill: "#3C3D37", r: 6 }}
+            activeDot={{ r: 8 }}
           />
         </LineChart>
       </ResponsiveContainer>

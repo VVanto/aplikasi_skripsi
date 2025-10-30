@@ -10,12 +10,14 @@ export default function TransaksiPage({ searchParams }) {
   const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null); // untuk loading state per tombol
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const res = await fetch(
           `/api/transaction?q=${encodeURIComponent(q)}&page=${page}`
@@ -41,26 +43,56 @@ export default function TransaksiPage({ searchParams }) {
     fetchData();
   }, [q, page]);
 
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Apakah Anda yakin ingin menghapus transaksi ini?"
+    );
+    if (!confirmDelete) return;
+
+    setDeletingId(id);
+
+    try {
+      const res = await fetch(`/api/transaction/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Gagal menghapus");
+      }
+
+      setTransaksi((prev) => prev.filter((trx) => trx.id !== id));
+      setCount((prev) => prev - 1);
+
+      alert("Transaksi berhasil dihapus!");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert(`Gagal menghapus: ${err.message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Format
   const formatDate = (date) => {
     if (!date || date === "0000-00-00 00:00:00") return "-";
     const parsedDate = new Date(date);
     return isNaN(parsedDate.getTime())
       ? "-"
-      : parsedDate.toString().slice(4, 25);
+      : parsedDate.toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
   };
 
   const formatPrice = (price) => {
     if (!price && price !== 0) return "Rp 0";
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
-
-  if (error) {
-    return (
-      <div className="bg-olive p-5 rounded-lg mt-5">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -72,50 +104,74 @@ export default function TransaksiPage({ searchParams }) {
     );
   }
 
+  if (error) {
+    return (
+      <div className="bg-olive p-5 rounded-lg mt-5">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Nama..." />
         <Link href="/dashboard/transaction/add">
-          <button className="bg-sage p-2 border-none rounded-lg cursor-pointer">
+          <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium">
             Tambahkan
           </button>
         </Link>
       </div>
-      <table className="w-full">
-        <thead>
-          <tr className="p-3">
-            <td>Ditambahkan oleh User</td>
 
-            <td>Tanggal</td>
-            <td>Total Harga</td>
-            <td>Tindakan</td>
-          </tr>
-        </thead>
-        <tbody>
-          {transaksi.map((trx) => (
-            <tr key={trx.id} className="p-3">
-              <td>{trx.name}</td>
-
-              <td>{formatDate(trx.createdAt)}</td>
-              <td>{formatPrice(trx.totalHarga)}</td>
-              <td>
-                <Link href={`/dashboard/transaction/${trx.id}`}>
-                  <button className="bg-blue-900 py-1 px-3 rounded-lg border-none cursor-pointer mr-2">
-                    Lihat
-                  </button>
-                </Link>
-                <button
-                  onClick={() => handleDelete(trx.id)}
-                  className="bg-red-800 py-1 px-3 rounded-lg border-none cursor-pointer"
-                >
-                  Hapus
-                </button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px] table-auto">
+          <thead>
+            <tr className="text-left border-b border-cream/20">
+              <th className="pb-3">User</th>
+              <th className="pb-3">Tanggal</th>
+              <th className="pb-3">Total Harga</th>
+              <th className="pb-3">Tindakan</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {transaksi.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center py-8 text-cream/70">
+                  Tidak ada transaksi ditemukan
+                </td>
+              </tr>
+            ) : (
+              transaksi.map((trx) => (
+                <tr
+                  key={trx.id}
+                  className="border-b border-cream/10 hover:bg-olive/50 transition"
+                >
+                  <td className="py-3">{trx.name || "-"}</td>
+                  <td className="py-3">{formatDate(trx.createdAt)}</td>
+                  <td className="py-3 font-medium">
+                    {formatPrice(trx.totalHarga)}
+                  </td>
+                  <td className="py-3 flex gap-2">
+                    <Link href={`/dashboard/transaction/${trx.id}`}>
+                      <button className="bg-blue-900 py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-blue-800 transition">
+                        Lihat
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(trx.id)}
+                      disabled={deletingId === trx.id}
+                      className="bg-red py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-red transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deletingId === trx.id ? "..." : "Hapus"}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
       <Pagination count={count} />
     </div>
   );

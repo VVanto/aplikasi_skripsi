@@ -1,101 +1,78 @@
+// app/api/users/route.js
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 
-export async function GET() {
-  let db = null;
+const LIMIT = 5;
 
+export async function GET(request) {
+  let db = null;
   try {
-    // Ambil koneksi dari pool
+    const { searchParams } = new URL(request.url);
+    const q = searchParams.get("q") || "";
+    const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
+
     db = await getConnection();
 
-    // Query users (jangan tampilkan password!)
-    const sql = "SELECT id, name, username, role, createdAt FROM users ORDER BY id DESC";
-    const [users] = await db.query(sql);
+    // Count total
+    let countSql = "SELECT COUNT(*) as total FROM users";
+    let countParams = [];
+    if (q) {
+      countSql += " WHERE username LIKE ? OR name LIKE ?";
+      countParams.push(`%${q}%`, `%${q}%`);
+    }
+    const [countResult] = await db.query(countSql, countParams);
+    const total = countResult[0].total;
 
-    return NextResponse.json(users);
+    // Get users
+    let sql = "SELECT id, name, username, role, createdAt FROM users";
+    let params = [];
+    if (q) {
+      sql += " WHERE username LIKE ? OR name LIKE ?";
+      params.push(`%${q}%`, `%${q}%`);
+    }
+    sql += " ORDER BY createdAt DESC LIMIT ? OFFSET ?";
+    params.push(LIMIT, (page - 1) * LIMIT);
 
+    const [users] = await db.query(sql, params);
+
+    return NextResponse.json({ users, count: total });
   } catch (error) {
     console.error("Users GET error:", error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   } finally {
-    if (db) {
-      try {
-        db.release();
-      } catch (releaseError) {
-        console.error("Error releasing connection:", releaseError);
-      }
-    }
+    if (db) db.release();
   }
 }
 
+// POST tetap sama
 export async function POST(request) {
   let db = null;
-
   try {
     const body = await request.json();
     const { name, username, password, role } = body;
 
-    // Validasi input
     if (!name || !username || !password || role === undefined) {
-      return NextResponse.json(
-        { error: "Semua field harus diisi" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Semua field harus diisi" }, { status: 400 });
     }
 
-    // Ambil koneksi dari pool
     db = await getConnection();
 
-    // Cek apakah username sudah ada
-    const [existingUser] = await db.query(
-      "SELECT id FROM users WHERE username = ?",
-      [username]
-    );
-
-    if (existingUser.length > 0) {
-      return NextResponse.json(
-        { error: "Username sudah digunakan" },
-        { status: 400 }
-      );
+    const [existing] = await db.query("SELECT id FROM users WHERE username = ?", [username]);
+    if (existing.length > 0) {
+      return NextResponse.json({ error: "Username sudah digunakan" }, { status: 400 });
     }
 
-    // Hash password dengan bcrypt
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Insert user baru
-    const sql = `
-      INSERT INTO users (name, username, password, role) 
-      VALUES (?, ?, ?, ?)
-    `;
-    const [result] = await db.query(sql, [
-      name,
-      username,
-      hashedPassword,
-      role === "true" || role === true || role === 1 ? 1 : 0,
-    ]);
-
-    return NextResponse.json(
-      { message: "User berhasil ditambahkan", id: result.insertId },
-      { status: 201 }
+    const hashed = await bcrypt.hash(password, 10);
+    const [result] = await db.query(
+      "INSERT INTO users (name, username, password, role) VALUES (?, ?, ?, ?)",
+      [name, username, hashed, role ? 1 : 0]
     );
 
+    return NextResponse.json({ message: "User ditambahkan", id: result.insertId }, { status: 201 });
   } catch (error) {
-    console.error("Users POST error:", error);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   } finally {
-    if (db) {
-      try {
-        db.release();
-      } catch (releaseError) {
-        console.error("Error releasing connection:", releaseError);
-      }
-    }
+    if (db) db.release();
   }
 }

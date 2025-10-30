@@ -12,6 +12,7 @@ const AddProductPage = () => {
     harga: "",
     stok: "",
     satuan: "",
+    stok_maksimal: "",
   });
 
   const handleSubmit = async (e) => {
@@ -22,27 +23,22 @@ const AddProductPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          harga: parseFloat(formData.harga) || 0, // Pastikan numerik
-          stok: parseInt(formData.stok) || 0, // Pastikan numerik
+          harga: parseFloat(formData.harga) || 0,
+          stok: parseInt(formData.stok) || 0,
+          stok_maksimal: parseInt(formData.stok_maksimal) || 100,
         }),
       });
       if (res.ok) {
         alert("Produk berhasil ditambahkan!");
         setFormData({
-          name: "",
-          kate: "",
-          desc: "",
-          harga: "",
-          stok: "",
-          satuan: "",
+          name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: ""
         });
         router.push("/dashboard/products");
       } else {
         const errData = await res.json();
-        alert(`Gagal menambahkan produk: ${errData.error || res.statusText}`);
+        alert(`Gagal: ${errData.error || res.statusText}`);
       }
     } catch (error) {
-      console.log(error);
       alert("Error: " + error.message);
     }
   };
@@ -53,77 +49,67 @@ const AddProductPage = () => {
         <input
           type="text"
           placeholder="Nama Produk"
-          name="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
           required
         />
         <select
-          name="kate"
-          id="kate"
           value={formData.kate}
           onChange={(e) => setFormData({ ...formData, kate: e.target.value })}
           className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
           required
         >
-          <option value="" disabled>
-            Pilih Kategori
-          </option>
-          <option value="Bahan Utama">Bahan Utama</option>
-          <option value="Cat & Pelapis">Cat & Pelapis</option>
-          <option value="Peralatan & Perkakas">Peralatan & Perkakas</option>
-          <option value="Sanitasi">Sanitasi</option>
-          <option value="Kelistrikan">Kelistrikan</option>
-          <option value="Kayu & Logam">Kayu & Logam</option>
-          <option value="Interior & Finishing">Interior & Finishing</option>
-          <option value="Eksterior">Eksterior</option>
+          <option value="" disabled>Pilih Kategori</option>
+          {["Bahan Utama", "Cat & Pelapis", "Peralatan & Perkakas", "Sanitasi", "Kelistrikan", "Kayu & Logam", "Interior & Finishing", "Eksterior"].map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
+
         <input
           type="number"
-          placeholder="Stok"
-          name="stok"
+          placeholder="Stok Awal"
           value={formData.stok}
           onChange={(e) => setFormData({ ...formData, stok: e.target.value })}
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-          required
-          min="0"
+          required min="0"
+        />
+        <input
+          type="number"
+          placeholder="Stok Maksimal (untuk peringatan)"
+          value={formData.stok_maksimal}
+          onChange={(e) => setFormData({ ...formData, stok_maksimal: e.target.value })}
+          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
+          required min="1"
+        />
+
+        <input
+          type="number"
+          placeholder="Harga"
+          value={formData.harga}
+          onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
+          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
+          required min="0" step="1000"
         />
         <input
           type="text"
-          placeholder="Satuan"
-          name="satuan"
+          placeholder="Satuan (pcs, kg, batang)"
           value={formData.satuan}
           onChange={(e) => setFormData({ ...formData, satuan: e.target.value })}
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
           required
         />
-        <input
-          type="number"
-          placeholder="Harga"
-          name="harga"
-          value={formData.harga}
-          onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
-          className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-          required
-          min="0"
-          step="10000"
-        />
+
         <textarea
-          name="desc"
-          id="desc"
-          cols="30"
-          rows="5"
-          placeholder="Deskripsi"
+          placeholder="Deskripsi (opsional)"
           value={formData.desc}
           onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
           className="bg-transparent w-full border border-lightOlive p-7 rounded-lg mb-7"
+          rows="4"
         />
-        <button
-          className="w-full p-3 bg-sage rounded-lg cursor-pointer border-none"
-          type="submit"
-        >
-          Submit
+
+        <button className="w-full p-3 bg-sage rounded-lg cursor-pointer border-none font-bold">
+          Tambah Produk
         </button>
       </form>
     </div>
