@@ -7,28 +7,33 @@ export async function GET() {
   try {
     conn = await getConnection();
 
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; 
     const [rows] = await conn.query(`
       SELECT 
-        CONCAT('Minggu ', week_num) AS week_label,
-        COALESCE(SUM(total), 0) AS total
+        week_group AS week_num,
+        COALESCE(SUM(totalharga), 0) AS total
       FROM (
         SELECT 
-          totalharga AS total,
-          WEEK(createdAt, 3) - WEEK(DATE_FORMAT(createdAt, '%Y-%m-01'), 3) + 1 AS week_num
+          totalharga,
+          CASE 
+            WHEN DAY(createdAt) BETWEEN 1 AND 7 THEN 1
+            WHEN DAY(createdAt) BETWEEN 8 AND 14 THEN 2
+            WHEN DAY(createdAt) BETWEEN 15 AND 21 THEN 3
+            ELSE 4
+          END AS week_group
         FROM transaksi
-        WHERE YEAR(createdAt) = YEAR(CURDATE())
-          AND MONTH(createdAt) = MONTH(CURDATE())
+        WHERE YEAR(createdAt) = ? 
+          AND MONTH(createdAt) = ?
       ) AS weekly_data
-      GROUP BY week_num
-      ORDER BY week_num ASC
-    `);
+      GROUP BY week_group
+      ORDER BY week_group ASC
+    `, [currentYear, currentMonth]);
 
+    // Pasti in semua 4 minggu ada (bahkan kalo kosong)
     const fullData = [];
     for (let i = 1; i <= 4; i++) {
-      const found = rows.find((r) => {
-        const num = parseInt(r.week_label.split(" ")[1]);
-        return num === i;
-      });
+      const found = rows.find(r => Number(r.week_num) === i);
       fullData.push({
         name: `Minggu ${i}`,
         total: found ? Number(found.total) : 0,

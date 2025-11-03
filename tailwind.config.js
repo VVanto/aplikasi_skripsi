@@ -15,6 +15,9 @@ module.exports = {
         sage: "#005956",
         red: "#C5172E",
         green: "#93DA97",
+        blue: "#1e3a8a",
+        maroon: "#7B542F",
+        darkGreen: "#556B2F"
       },
     },
   },

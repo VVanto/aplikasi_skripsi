@@ -1,14 +1,24 @@
+// ✏️ UPDATED: app/api/transaksi/[id]/route.js
+// Perubahan:
+// - Tambah import yang hilang
+// - Tambah logging di DELETE
+// - Fix await params
+
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/app/lib/activity";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function GET(request, { params }) {
   let db = null;
-  
+
   try {
     const { id } = await params;
-    
-    // Ambil koneksi dari pool
-    db = await getConnection(); 
+
+    db = await getConnection();
 
     // Fetch detail transaksi utama dengan JOIN ke users
     const sqlTransaksi = `
@@ -36,18 +46,19 @@ export async function GET(request, { params }) {
 
     // Fetch detail transaksi dengan JOIN ke products
     const sqlDetail = `
-      SELECT 
-        dt.id, 
-        dt.barangId,
-        dt.jumlahBarang, 
-        dt.hargaSatuan, 
-        dt.subTotal, 
-        p.name AS namaBarang, 
-        p.kate AS kategoriBarang 
-      FROM detailtransaksi dt 
-      JOIN products p ON dt.barangId = p.id 
-      WHERE dt.transaksiId = ?
-    `;
+  SELECT 
+    p.id AS barangId,         
+    dt.id AS detailId,        
+    dt.jumlahBarang, 
+    dt.hargaSatuan, 
+    dt.subTotal, 
+    p.name AS namaBarang, 
+    p.kate AS kategoriBarang 
+  FROM detailtransaksi dt 
+  JOIN products p ON dt.barangId = p.id 
+  WHERE dt.transaksiId = ?
+`;
+
     const [detailtransaksi] = await db.query(sqlDetail, [id]);
 
     return NextResponse.json({ transaksi, detailtransaksi });
@@ -71,22 +82,44 @@ export async function GET(request, { params }) {
 
 export async function DELETE(request, { params }) {
   let db = null;
-  
+  let actorId = null;
+
   try {
     const { id } = await params;
-    
-    // Ambil koneksi dari pool
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) return NextResponse.json({ error: "Login dulu" }, { status: 401 });
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    actorId = payload.id;
+
     db = await getConnection();
 
     // Mulai transaksi database
     await db.beginTransaction();
 
     try {
-      // Ambil detail transaksi untuk mengembalikan stok
-      const [details] = await db.query(
-        "SELECT barangId, jumlahBarang FROM detailtransaksi WHERE transaksiId = ?",
+      // Ambil info transaksi untuk log
+      const [transaksiInfo] = await db.query(
+        "SELECT totalHarga FROM transaksi WHERE id = ?",
         [id]
       );
+
+      if (transaksiInfo.length === 0) {
+        throw new Error("Transaksi tidak ditemukan");
+      }
+
+      // Ambil detail transaksi untuk mengembalikan stok dan log
+      const [details] = await db.query(
+        `SELECT dt.barangId, dt.jumlahBarang, p.name 
+         FROM detailtransaksi dt
+         JOIN products p ON dt.barangId = p.id
+         WHERE dt.transaksiId = ?`,
+        [id]
+      );
+
+      const itemNames = details.map(d => `${d.name} (${d.jumlahBarang})`).join(', ');
 
       // Kembalikan stok produk
       for (const detail of details) {
@@ -100,11 +133,14 @@ export async function DELETE(request, { params }) {
       await db.query("DELETE FROM detailtransaksi WHERE transaksiId = ?", [id]);
 
       // Hapus transaksi
-      const [result] = await db.query("DELETE FROM transaksi WHERE id = ?", [id]);
+      await db.query("DELETE FROM transaksi WHERE id = ?", [id]);
 
-      if (result.affectedRows === 0) {
-        throw new Error("Transaksi tidak ditemukan");
-      }
+      // Log aktivitas
+      await logActivity(
+        db,
+        `Hapus transaksi #${id}: Rp${transaksiInfo[0].totalHarga.toLocaleString()} - ${itemNames}`,
+        actorId
+      );
 
       // Commit transaksi
       await db.commit();

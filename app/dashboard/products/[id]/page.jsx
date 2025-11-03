@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import Loading from "../../loading";
+import { useRouter } from "next/navigation";
 
 const SingleProductPage = () => {
   const { id } = useParams();
+  const router = useRouter();
   const [product, setProduct] = useState(null);
   const [form, setForm] = useState({
     stok: "",
@@ -16,7 +19,6 @@ const SingleProductPage = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
- 
   const loadProduct = async () => {
     setFetching(true);
     try {
@@ -41,7 +43,6 @@ const SingleProductPage = () => {
     loadProduct();
   }, [id]);
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.stok < 0) {
@@ -72,7 +73,8 @@ const SingleProductPage = () => {
 
       if (res.ok) {
         alert("Produk berhasil diupdate!");
-        await loadProduct(); // Reload data
+        router.push("/dashboard/products");
+        await loadProduct();
       } else {
         const err = await res.json();
         alert(err.error || "Gagal update");
@@ -84,7 +86,6 @@ const SingleProductPage = () => {
     }
   };
 
- 
   if (fetching) return <Loading />;
   if (!product)
     return (
@@ -97,8 +98,39 @@ const SingleProductPage = () => {
 
   return (
     <div className="flex gap-6 mt-5">
-   
+      {/* Kolom Kiri - Info & Gambar */}
       <div className="flex-1 bg-olive p-6 rounded-lg space-y-4">
+        {/* Gambar Produk */}
+        <div className="w-full h-[500px] bg-lightOlive rounded-lg overflow-hidden flex items-center justify-center">
+          {product.gambar ? (
+            <Image
+              src={product.gambar}
+              alt={product.name}
+              width={500}
+              height={500}
+              className="object-cover w-full h-full"
+              priority
+            />
+          ) : (
+            <div className="text-center text-cream/50">
+              <svg
+                className="w-24 h-24 mx-auto mb-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p>Tidak ada gambar</p>
+            </div>
+          )}
+        </div>
+
         <h2 className="text-3xl font-bold text-cream">{product.name}</h2>
         <div className="grid grid-cols-2 gap-4 text-xl">
           <div>
@@ -110,7 +142,6 @@ const SingleProductPage = () => {
             <p className="font-semibold">{product.satuan}</p>
           </div>
         </div>
-
 
         <div className="mt-6">
           <p className="text-cream/70 text-sm mb-1">Persentase Stok</p>
@@ -128,7 +159,7 @@ const SingleProductPage = () => {
         </div>
       </div>
 
-
+      {/* Kolom Kanan - Form Edit */}
       <div className="flex-1 bg-olive p-6 rounded-lg">
         <h3 className="text-xl font-bold mb-4 text-cream">Edit Produk</h3>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -166,7 +197,7 @@ const SingleProductPage = () => {
               type="number"
               value={form.harga}
               onChange={(e) => setForm({ ...form, harga: e.target.value })}
-              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg  focus:outline-none focus:border-sage"
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg focus:outline-none focus:border-sage"
               min="0"
               step="1000"
               required
@@ -179,7 +210,7 @@ const SingleProductPage = () => {
             <textarea
               value={form.deskrip}
               onChange={(e) => setForm({ ...form, deskrip: e.target.value })}
-              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg  resize-none focus:outline-none focus:border-sage"
+              className="w-full p-3 bg-transparent border border-lightOlive rounded-lg resize-none focus:outline-none focus:border-sage"
               rows="4"
               placeholder="Opsional..."
               disabled={loading}
@@ -189,7 +220,7 @@ const SingleProductPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full p-3 bg-sage hover:bg-sage/80 disabled:bg-gray-600 rounded-lg font-bold  transition disabled:cursor-not-allowed"
+            className="w-full p-3 bg-sage hover:bg-sage/80 disabled:bg-gray-600 rounded-lg font-bold transition disabled:cursor-not-allowed"
           >
             {loading ? "Menyimpan..." : "Simpan Perubahan"}
           </button>

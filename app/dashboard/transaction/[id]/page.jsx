@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
+import Link from "next/link";
 import Loading from "../../loading";
 
 export default function SingleTransaksiPage() {
@@ -54,7 +54,11 @@ export default function SingleTransaksiPage() {
   };
 
   if (loading) {
-    return <div className="bg-olive p-5 rounded-lg mt-5"><Loading/></div>;
+    return (
+      <div className="bg-olive p-5 rounded-lg mt-5">
+        <Loading />
+      </div>
+    );
   }
 
   if (error) {
@@ -68,7 +72,6 @@ export default function SingleTransaksiPage() {
   return (
     <div className="flex gap-5 mt-5">
       <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max">
-     
         <h2 className="text-2xl font-bold mb-20">
           Detail Transaksi #{transaksi.id}
         </h2>
@@ -99,9 +102,16 @@ export default function SingleTransaksiPage() {
               </tr>
             ) : (
               detailtransaksi.map((item) => (
-                <tr key={item.id} className="p-3">
-                  <td>{item.id}</td>
-                  <td>{item.namaBarang}</td>
+                <tr key={item.detailId} className="p-3 hover:bg-lightOlive/30 transition">
+                  <td>{item.barangId}</td>
+                  <td>
+                    <Link
+                      href={`/dashboard/products/${item.barangId}`}
+                      className="text-cream hover:text-cream/50 hover:font-medium transition"
+                    >
+                      {item.namaBarang}
+                    </Link>
+                  </td>
                   <td>{item.kategoriBarang}</td>
                   <td>{item.jumlahBarang}</td>
                   <td>{formatPrice(item.hargaSatuan)}</td>

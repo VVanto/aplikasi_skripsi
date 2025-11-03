@@ -153,7 +153,7 @@ export default function TransaksiPage({ searchParams }) {
                   </td>
                   <td className="py-3 flex gap-2">
                     <Link href={`/dashboard/transaction/${trx.id}`}>
-                      <button className="bg-blue-900 py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-blue-800 transition">
+                      <button className="bg-blue py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-blue transition">
                         Lihat
                       </button>
                     </Link>

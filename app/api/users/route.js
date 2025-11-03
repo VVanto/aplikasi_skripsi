@@ -1,8 +1,14 @@
-// app/api/users/route.js
+// ✏️ UPDATED: app/api/users/route.js
+// Perubahan: Tambah import yang hilang (jwtVerify, cookies, JWT_SECRET)
+
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
+import { logActivity } from "@/app/lib/activity";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const LIMIT = 5;
 
 export async function GET(request) {
@@ -45,23 +51,28 @@ export async function GET(request) {
   }
 }
 
-// POST tetap sama
 export async function POST(request) {
   let db = null;
+  let actorId = null;
+
   try {
-    const body = await request.json();
-    const { name, username, password, role } = body;
+    const { name, username, password, role } = await request.json();
 
     if (!name || !username || !password || role === undefined) {
-      return NextResponse.json({ error: "Semua field harus diisi" }, { status: 400 });
+      return NextResponse.json({ error: "Field wajib diisi" }, { status: 400 });
     }
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) return NextResponse.json({ error: "Login dulu" }, { status: 401 });
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    actorId = payload.id;
 
     db = await getConnection();
 
     const [existing] = await db.query("SELECT id FROM users WHERE username = ?", [username]);
-    if (existing.length > 0) {
-      return NextResponse.json({ error: "Username sudah digunakan" }, { status: 400 });
-    }
+    if (existing.length > 0) return NextResponse.json({ error: "Username sudah ada" }, { status: 400 });
 
     const hashed = await bcrypt.hash(password, 10);
     const [result] = await db.query(
@@ -69,8 +80,11 @@ export async function POST(request) {
       [name, username, hashed, role ? 1 : 0]
     );
 
-    return NextResponse.json({ message: "User ditambahkan", id: result.insertId }, { status: 201 });
+    await logActivity(db, `Tambah user: ${name} (@${username})`, actorId);
+
+    return NextResponse.json({ message: "Sukses", id: result.insertId }, { status: 201 });
   } catch (error) {
+    console.error("Users POST error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   } finally {
     if (db) db.release();

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const AddProductPage = () => {
   const router = useRouter();
@@ -14,10 +15,61 @@ const AddProductPage = () => {
     satuan: "",
     stok_maksimal: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validasi ukuran (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran file maksimal 5MB");
+        return;
+      }
+
+      // Validasi tipe file
+      if (!file.type.startsWith("image/")) {
+        alert("File harus berupa gambar");
+        return;
+      }
+
+      setImageFile(file);
+
+      // Preview gambar
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploading(true);
+
     try {
+      // Upload gambar dulu jika ada
+      let gambarUrl = null;
+      if (imageFile) {
+        const formDataImage = new FormData();
+        formDataImage.append("file", imageFile);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formDataImage,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error("Gagal upload gambar");
+        }
+
+        const uploadData = await uploadRes.json();
+        gambarUrl = uploadData.url;
+      }
+
+      // Submit product dengan URL gambar
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,13 +78,17 @@ const AddProductPage = () => {
           harga: parseFloat(formData.harga) || 0,
           stok: parseInt(formData.stok) || 0,
           stok_maksimal: parseInt(formData.stok_maksimal) || 100,
+          gambar: gambarUrl,
         }),
       });
+
       if (res.ok) {
         alert("Produk berhasil ditambahkan!");
         setFormData({
           name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: ""
         });
+        setImageFile(null);
+        setImagePreview(null);
         router.push("/dashboard/products");
       } else {
         const errData = await res.json();
@@ -40,6 +96,8 @@ const AddProductPage = () => {
       }
     } catch (error) {
       alert("Error: " + error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -108,8 +166,46 @@ const AddProductPage = () => {
           rows="4"
         />
 
-        <button className="w-full p-3 bg-sage rounded-lg cursor-pointer border-none font-bold">
-          Tambah Produk
+        {/* Upload Gambar */}
+        <div className="w-full mb-7">
+          <label className="block mb-2 text-sm font-medium">
+            Gambar Produk (opsional, max 5MB)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="block w-full text-sm border border-lightOlive rounded-lg cursor-pointer bg-transparent p-2"
+          />
+
+          {imagePreview && (
+            <div className="mt-4 relative w-32 h-32">
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                fill
+                className="object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  setImagePreview(null);
+                }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={uploading}
+          className="w-full p-3 bg-sage rounded-lg cursor-pointer border-none font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {uploading ? "Mengupload..." : "Tambah Produk"}
         </button>
       </form>
     </div>

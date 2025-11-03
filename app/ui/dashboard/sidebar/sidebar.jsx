@@ -34,10 +34,10 @@ const menuItems = [
         path: "/dashboard/transaction",
         icon: <MdAttachMoney />,
       },
-         {
+      {
         title: "Log Aktivitas",
         path: "/dashboard/log",
-        icon: <MdHistory/>,
+        icon: <MdHistory />,
       },
     ],
   },
@@ -96,10 +96,10 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="sticky top-5 h-[calc(100vh-2.5rem)] flex flex-col justify-between">
- 
+    <div className="sticky top-5 h-[calc(100vh-2.5rem)] w-[200px] flex flex-col justify-between">
+
       <div>
-  
+
         <div className="flex items-center gap-5 mb-5">
           <Image
             src="/noavatar.png"
@@ -116,7 +116,7 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* MENU */}
+       
         <ul className="list-none">
           {menuItems.map((cat) => (
             <li key={cat.titles}>

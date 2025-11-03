@@ -1,10 +1,15 @@
-// app/api/products/route.js
+// ✏️ UPDATED: app/api/products/route.js
+// Perubahan: Tambah import yang hilang (jwtVerify, cookies, JWT_SECRET)
+
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/app/lib/activity";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const ITEMS_PER_PAGE = 5;
 
-// === GET: List + Search + Pagination ===
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") || "";
@@ -34,24 +39,34 @@ export async function GET(request) {
   }
 }
 
-// === POST: Tambah Produk ===
 export async function POST(request) {
-  let db;
+  let db = null;
+  let actorId = null;
+
   try {
-    const { name, kate, desc, harga, stok, satuan, stok_maksimal } = await request.json();
+    const { name, kate, desc, harga, stok, satuan, stok_maksimal, gambar } = await request.json();
 
     if (!name || !kate || !harga || !stok || !satuan || !stok_maksimal) {
       return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
     }
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) return NextResponse.json({ error: "Login dulu" }, { status: 401 });
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    actorId = payload.id;
+
     db = await getConnection();
 
     const [result] = await db.query(
       `INSERT INTO products 
-       (name, kate, deskrip, harga, stok, satuan, stok_maksimal, createdAt) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [name, kate, desc || null, harga, stok, satuan, stok_maksimal]
+       (name, kate, deskrip, harga, stok, satuan, stok_maksimal, gambar, createdAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [name, kate, desc || null, harga, stok, satuan, stok_maksimal, gambar || null]
     );
+
+    await logActivity(db, `Tambah produk: ${name} (${stok} ${satuan})`, actorId);
 
     return NextResponse.json({ message: "Sukses", id: result.insertId }, { status: 201 });
   } catch (error) {

@@ -65,7 +65,7 @@ export default function ProductsPage({ searchParams }) {
       <div className="flex items-center justify-between">
         <Search placeholder="Cari Produk..." />
         <Link href="/dashboard/products/add">
-          <button className="bg-sage p-2 border-none rounded-lg cursor-pointer">
+          <button className="bg-sage p-2 border-none rounded-lg cursor-pointer hover:bg-sage/80 transition">
             Tambahkan
           </button>
         </Link>
@@ -95,7 +95,7 @@ export default function ProductsPage({ searchParams }) {
               </td>
               <td>
                 <Link href={`/dashboard/products/${product.id}`}>
-                  <button className="bg-blue-900 py-1 px-3 rounded-lg border-none cursor-pointer mr-2">
+                  <button className="bg-blue py-1 px-3 rounded-lg border-none cursor-pointer mr-2 hover:bg-blue transition">
                     Lihat
                   </button>
                 </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from "@/app/dashboard/loading";
 import { useState, useEffect } from "react";
 import {
   Line,
@@ -53,9 +54,7 @@ const Chart = () => {
 
   if (loading) {
     return (
-      <div className="h-[450px] bg-olive rounded-lg p-5 flex items-center justify-center">
-        <div className="loader"></div>
-      </div>
+   <Loading/>
     );
   }
 
@@ -75,7 +74,7 @@ const Chart = () => {
         Penjualan per Minggu - {new Date().toLocaleString("id-ID", { month: "long", year: "numeric" })}
       </h2>
       <ResponsiveContainer width="100%" height="90%">
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 20, right: 30, left: 35, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis 
             dataKey="name" 

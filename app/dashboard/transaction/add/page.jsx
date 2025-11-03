@@ -333,7 +333,7 @@ export default function AddTransaksiPage() {
         <button
           type="button"
           onClick={addItem}
-          className="bg-blue-900 hover:bg-blue-800 p-3 rounded-lg mb-4 font-medium transition"
+          className="bg-blue hover:bg-blue p-3 rounded-lg mb-4 font-medium transition"
         >
           + Tambah Item Baru
         </button>

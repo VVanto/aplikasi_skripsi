@@ -42,7 +42,7 @@ const RightBar = () => {
   }
 
   return (
-    <div className="fixed right-0 w-[350px] bg-olive/90 backdrop-blur-sm p-5 mr-5 rounded-lg shadow-lg border border-cream/10">
+    <div className="fixed right-0 w-[300px] bg-olive/90 backdrop-blur-sm p-5 mr-5 rounded-lg shadow-lg border border-cream/10">
       <div className="flex items-center gap-3 mb-4">
         <div>
           <h3 className="font-bold text-lg text-cream">Peringatan Stok</h3>

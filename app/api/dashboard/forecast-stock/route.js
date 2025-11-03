@@ -21,43 +21,40 @@ export async function GET() {
       GROUP BY p.id, p.name, p.stok, p.satuan
       HAVING current_stock > 0
       ORDER BY total_sold DESC, current_stock ASC
-      LIMIT 1
+      LIMIT 5
     `);
 
     if (rows.length === 0) {
       return NextResponse.json({
-        name: "Semua stok aman",
-        currentStock: 0,
-        dailySales: 0,
-        daysLeft: 999,
-        risk: "low",
-        satuan: ""
+        items: [],
+        message: "Semua stok aman"
       });
     }
 
-    const product = rows[0];
-    const dailySales = Number(product.total_sold) / 30 || 0.1;
-    const daysLeft = Number(product.current_stock) / dailySales;
+    const items = rows.map(product => {
+      const dailySales = Number(product.total_sold) / 30 || 0.1;
+      const daysLeft = Number(product.current_stock) / dailySales;
 
-    let risk = "low";
-    if (daysLeft <= 1) risk = "critical";
-    else if (daysLeft <= 3) risk = "high";
-    else if (daysLeft <= 7) risk = "medium";
+      let risk = "low";
+      if (daysLeft <= 1) risk = "critical";
+      else if (daysLeft <= 3) risk = "high";
+      else if (daysLeft <= 7) risk = "medium";
 
-    return NextResponse.json({
-      name: product.name,
-      currentStock: Number(product.current_stock),
-      dailySales: Math.round(dailySales * 10) / 10,
-      daysLeft: daysLeft,
-      risk: risk,
-      satuan: product.satuan || "unit",
+      return {
+        id: product.id,
+        name: product.name,
+        currentStock: Number(product.current_stock),
+        dailySales: Math.round(dailySales * 10) / 10,
+        daysLeft: daysLeft,
+        risk: risk,
+        satuan: product.satuan || "unit",
+      };
     });
+
+    return NextResponse.json({ items });
   } catch (error) {
     console.error("Forecast error:", error);
-    return NextResponse.json(
-      { error: "Gagal ambil data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Gagal ambil data" }, { status: 500 });
   } finally {
     if (conn) conn.release();
   }
