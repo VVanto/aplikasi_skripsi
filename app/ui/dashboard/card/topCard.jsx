@@ -76,7 +76,7 @@ const TopProductCard = () => {
                       }`}>
                       #{index + 1}
                     </span>
-                    <p className="font-semibold text-cream truncate">
+                    <p className="font-semibold text-cream line-clamp-2">
                       {item.name}
                     </p>
                   </div>
@@ -107,7 +107,7 @@ const TopProductCard = () => {
       {items.length > 0 && (
         <Link
           href="/dashboard/transaction"
-          className="block text-center mt-4 text-sm text-cream underline hover:text-sage transition"
+          className="block text-center mt-4 text-sm text-cream underline hover:text-cream/60 transition"
         >
           Lihat semua transaksi
         </Link>

@@ -20,7 +20,6 @@ export async function GET(request, { params }) {
 
     db = await getConnection();
 
-    // Fetch detail transaksi utama dengan JOIN ke users
     const sqlTransaksi = `
       SELECT 
         ts.id, 

@@ -74,7 +74,7 @@ const Chart = () => {
         Penjualan per Minggu - {new Date().toLocaleString("id-ID", { month: "long", year: "numeric" })}
       </h2>
       <ResponsiveContainer width="100%" height="90%">
-        <LineChart data={data} margin={{ top: 20, right: 30, left: 35, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 20, right: 30, left: 50, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis 
             dataKey="name" 

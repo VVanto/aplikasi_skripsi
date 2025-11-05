@@ -3,7 +3,6 @@ import MonthlySalesCard from "../ui/dashboard/card/monthlyCard";
 import TopProductCard from "../ui/dashboard/card/topCard";
 import Chart from "../ui/dashboard/chart/chart";
 import RightBar from "../ui/dashboard/rightBar/rightBar";
-import Transaction from "./transaction/page";
 
 const DashboardPage = () => {
   return (

@@ -23,7 +23,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-td{
+td {
   padding: 10px;
 }
 
@@ -41,33 +41,40 @@ a {
 .loader {
   width: 40px;
   aspect-ratio: 1;
-  color: #ecdfcc; 
+  color: #ecdfcc;
   position: relative;
-  background:
-    conic-gradient(from 134deg at top, currentColor 92deg, #0000 0) top,
+  background: conic-gradient(from 134deg at top, currentColor 92deg, #0000 0)
+      top,
     conic-gradient(from -46deg at bottom, currentColor 92deg, #0000 0) bottom;
   background-size: 100% 50%;
   background-repeat: no-repeat;
 }
 .loader:before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   --g: currentColor 14.5px, #0000 0 calc(100% - 14.5px), currentColor 0;
-  background:
-    linear-gradient(45deg, var(--g)),
+  background: linear-gradient(45deg, var(--g)),
     linear-gradient(-45deg, var(--g));
   animation: l7 1.5s infinite cubic-bezier(0.3, 1, 0, 1);
 }
 @keyframes l7 {
-  33% { inset: -10px; transform: rotate(0deg); }
-  66% { inset: -10px; transform: rotate(90deg); }
-  100% { inset: 0; transform: rotate(90deg); }
+  33% {
+    inset: -10px;
+    transform: rotate(0deg);
+  }
+  66% {
+    inset: -10px;
+    transform: rotate(90deg);
+  }
+  100% {
+    inset: 0;
+    transform: rotate(90deg);
+  }
 }
 
-
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -75,10 +82,10 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #3C3D37;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: #5c5e54;
 }

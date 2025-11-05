@@ -17,7 +17,7 @@ export async function GET() {
       FROM products
       WHERE 
         stok_maksimal > 0
-        AND CAST(stok AS UNSIGNED) <= (stok_maksimal * 0.1)
+        AND CAST(stok AS UNSIGNED) <= (stok_maksimal * 0.2)
       ORDER BY CAST(stok AS UNSIGNED) ASC, (CAST(stok AS UNSIGNED) / stok_maksimal) ASC
       LIMIT 10
     `);

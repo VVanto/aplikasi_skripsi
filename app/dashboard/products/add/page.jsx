@@ -3,17 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
 
 const AddProductPage = () => {
   const router = useRouter();
+  const { success, error } = useAlert();
+
   const [formData, setFormData] = useState({
-    name: "",
-    kate: "",
-    desc: "",
-    harga: "",
-    stok: "",
-    satuan: "",
-    stok_maksimal: "",
+    name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -21,28 +18,21 @@ const AddProductPage = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Validasi ukuran (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Ukuran file maksimal 5MB");
-        return;
-      }
+    if (!file) return;
 
-      // Validasi tipe file
-      if (!file.type.startsWith("image/")) {
-        alert("File harus berupa gambar");
-        return;
-      }
-
-      setImageFile(file);
-
-      // Preview gambar
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      error("Ukuran file maksimal 5MB");
+      return;
     }
+    if (!file.type.startsWith("image/")) {
+      error("File harus berupa gambar");
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -50,7 +40,6 @@ const AddProductPage = () => {
     setUploading(true);
 
     try {
-      // Upload gambar dulu jika ada
       let gambarUrl = null;
       if (imageFile) {
         const formDataImage = new FormData();
@@ -61,15 +50,11 @@ const AddProductPage = () => {
           body: formDataImage,
         });
 
-        if (!uploadRes.ok) {
-          throw new Error("Gagal upload gambar");
-        }
-
+        if (!uploadRes.ok) throw new Error("Gagal upload gambar");
         const uploadData = await uploadRes.json();
         gambarUrl = uploadData.url;
       }
 
-      // Submit product dengan URL gambar
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,19 +68,17 @@ const AddProductPage = () => {
       });
 
       if (res.ok) {
-        alert("Produk berhasil ditambahkan!");
-        setFormData({
-          name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: ""
-        });
+        success("Produk berhasil ditambahkan!");
+        setFormData({ name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: "" });
         setImageFile(null);
         setImagePreview(null);
         router.push("/dashboard/products");
       } else {
         const errData = await res.json();
-        alert(`Gagal: ${errData.error || res.statusText}`);
+        error(errData.error || "Gagal menambahkan produk");
       }
-    } catch (error) {
-      alert("Error: " + error.message);
+    } catch (err) {
+      error("Error: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -104,23 +87,12 @@ const AddProductPage = () => {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <form onSubmit={handleSubmit} className="flex flex-wrap justify-between">
-        <input
-          type="text"
-          placeholder="Nama Produk"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
-          required
-        />
-        <select
-          value={formData.kate}
-          onChange={(e) => setFormData({ ...formData, kate: e.target.value })}
-          className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
-          required
-        >
-          <option value="" disabled>Pilih Kategori</option>
+        {/* Input fields sama, hanya ganti alert() → error() */}
+        <input type="text" placeholder="Nama Produk" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required />
+        <select value={formData.kate} onChange={(e) => setFormData({ ...formData, kate: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required>
+          <option value="" className="bg-olive" disabled>Pilih Kategori</option>
           {["Bahan Utama", "Cat & Pelapis", "Peralatan & Perkakas", "Sanitasi", "Kelistrikan", "Kayu & Logam", "Interior & Finishing", "Eksterior"].map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option className="bg-olive" key={cat} value={cat}>{cat}</option>
           ))}
         </select>
 

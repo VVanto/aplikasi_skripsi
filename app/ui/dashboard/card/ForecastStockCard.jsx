@@ -54,7 +54,7 @@ const ForecastStockCard = () => {
 
   if (loading) {
     return (
-      <div className="bg-olive p-6 rounded-lg animate-pulse">
+      <div className="bg-olive p-5 rounded-lg animate-pulse max-w-md">
         <div className="h-6 bg-gray-700 rounded w-48 mb-4"></div>
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
@@ -66,48 +66,50 @@ const ForecastStockCard = () => {
   }
 
   return (
-    <div className="bg-olive p-6 rounded-lg shadow-md">
+    <div className="bg-olive p-5 rounded-lg shadow-md max-w-md">
       <div className="flex items-center gap-3 mb-4">
-
-        <h3 className="text-lg font-bold text-cream">
+        <h3 className="text-base font-bold text-cream">
           Prediksi Stok Habis Terdekat
         </h3>
       </div>
 
       {items.length === 0 ? (
         <div className="text-center py-8 text-cream/70">
-          <div className="text-5xl mb-2">All good</div>
-          <p>{message || "Tidak ada stok kritis"}</p>
+          <div className="text-5xl mb-2">✅</div>
+          <p className="text-sm">{message || "Tidak ada stok kritis"}</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
           {items.map((item, index) => (
             <Link
               href={`/dashboard/products/${item.id}`}
               key={item.id}
-              className={`block p-4 rounded-lg border transition-all hover:shadow-lg ${riskBg[item.risk]}`}
+              className={`block p-3 rounded-lg border transition-all hover:shadow-lg ${riskBg[item.risk]}`}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
-                  <p className="font-semibold text-cream truncate">
+              <div className="flex justify-between items-start gap-2 mb-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-cream text-sm truncate">
                     #{index + 1} {item.name}
                   </p>
+                  <p className="text-xs text-cream/70 mt-0.5">
+                    Sisa: <strong>{item.currentStock}</strong> {item.satuan}
+                  </p>
                   <p className="text-xs text-cream/70">
-                    Sisa: <strong>{item.currentStock}</strong> {item.satuan} •
                     Terjual: <strong>{item.dailySales}</strong>/hari
                   </p>
                 </div>
-                <span className={`text-lg font-bold ${riskColor[item.risk]}`}>
+                <span className={`text-base font-bold whitespace-nowrap ${riskColor[item.risk]}`}>
                   {formatDays(item.daysLeft)}
                 </span>
               </div>
 
               <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
                 <div
-                  className={`h-2 rounded-full transition-all ${item.risk === "critical" ? "bg-red-500" :
-                      item.risk === "high" ? "bg-orange-400" :
-                        item.risk === "medium" ? "bg-yellow-400" : "bg-green-400"
-                    }`}
+                  className={`h-2 rounded-full transition-all ${
+                    item.risk === "critical" ? "bg-red-500" :
+                    item.risk === "high" ? "bg-orange-400" :
+                    item.risk === "medium" ? "bg-yellow-400" : "bg-green-400"
+                  }`}
                   style={{
                     width: `${Math.min((item.currentStock / (item.currentStock + item.dailySales * 7)) * 100, 100)}%`
                   }}
@@ -121,7 +123,7 @@ const ForecastStockCard = () => {
       {items.length > 0 && (
         <Link
           href="/dashboard/products"
-          className="block text-center mt-4 text-sm text-cream underline hover:text-sage transition"
+          className="block text-center mt-4 text-sm text-cream underline hover:text-cream/60 transition"
         >
           Lihat semua produk
         </Link>
