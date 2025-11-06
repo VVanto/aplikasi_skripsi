@@ -46,7 +46,7 @@ const MonthlySalesCard = () => {
   }
 
   return (
-    <div className="bg-olive p-14 rounded-lg flex cursor-pointer hover:bg-lightOlive transition-all">
+    <div className="bg-olive p-14 rounded-lg flex transition-all">
       <div className="flex flex-col gap-3">
         <span className=" text-lg font-medium">Penjualan Bulan Ini</span>
         <span className="text-3xl font-medium ">
