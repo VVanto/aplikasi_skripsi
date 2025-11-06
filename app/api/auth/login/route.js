@@ -79,7 +79,7 @@ export async function POST(request) {
       id: user.id,
       username: user.username,
       name: user.name || user.username,
-      role: user.role || "user", // default role
+      role: user.role || 0, 
     };
 
     // Buat JWT

@@ -5,19 +5,43 @@ import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
+import Loading from "../loading";
 
 export default function ProductsPage({ searchParams }) {
   const { success, error, confirm } = useAlert();
   const [products, setProducts] = useState([]);
   const [count, setCount] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null); // ← USER YANG LOGIN
+  const [loading, setLoading] = useState(true);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
 
+  // Ambil user yang login
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        }
+      } catch (err) {
+        console.error("Gagal ambil user login:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
+  // Ambil daftar produk
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`/api/products?q=${encodeURIComponent(q)}&page=${page}`);
+        const res = await fetch(
+          `/api/products?q=${encodeURIComponent(q)}&page=${page}`
+        );
         if (!res.ok) throw new Error(`Gagal fetch produk: ${res.statusText}`);
         const data = await res.json();
         setProducts(data.products || []);
@@ -34,8 +58,8 @@ export default function ProductsPage({ searchParams }) {
       try {
         const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Gagal hapus produk");
-        setProducts(prev => prev.filter(p => p.id !== id));
-        setCount(prev => prev - 1);
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setCount((prev) => prev - 1);
         success("Produk berhasil dihapus!");
       } catch (err) {
         error(err.message);
@@ -50,13 +74,24 @@ export default function ProductsPage({ searchParams }) {
     return isNaN(d.getTime()) ? "-" : d.toString().slice(4, 25);
   };
 
+  if (loading) {
+    return <Loading />;
+  }
+
+  const isAdmin = currentUser?.role === 1;
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Produk..." />
-        <Link href="/dashboard/products/add">
-          <button className="bg-sage p-2 rounded-lg hover:bg-sage/80 transition">Tambahkan</button>
-        </Link>
+
+        {isAdmin && (
+          <Link href="/dashboard/products/add">
+            <button className="bg-sage p-2 rounded-lg hover:bg-sage/80 transition">
+              Tambahkan
+            </button>
+          </Link>
+        )}
       </div>
 
       <table className="w-full">
@@ -68,29 +103,51 @@ export default function ProductsPage({ searchParams }) {
             <td>Harga</td>
             <td>Dibuat pada</td>
             <td>Stok</td>
-            <td>Tindakan</td>
+            {isAdmin && <td>Tindakan</td>}
           </tr>
         </thead>
         <tbody>
           {products.length === 0 ? (
-            <tr><td colSpan="7" className="text-center py-8 text-cream/70">Tidak ada Produk ditemukan</td></tr>
+            <tr>
+              <td
+                colSpan={isAdmin ? "7" : "6"}
+                className="text-center py-8 text-cream/70"
+              >
+                Tidak ada Produk ditemukan
+              </td>
+            </tr>
           ) : (
             products.map((product) => (
-              <tr key={product.id} className="p-3 border-t border-lightOlive/30">
+              <tr
+                key={product.id}
+                className="p-3 border-t border-lightOlive/30"
+              >
                 <td>{product.name}</td>
                 <td>{product.kate}</td>
                 <td>{product.deskrip || "-"}</td>
                 <td>{formatPrice(product.harga)}</td>
                 <td>{formatDate(product.createdAt)}</td>
-                <td>{product.stok} {product.satuan}</td>
                 <td>
-                  <Link href={`/dashboard/products/${product.id}`}>
-                    <button className="bg-blue py-1 px-3 rounded-lg mr-2 hover:bg-blue/80 transition">Lihat</button>
-                  </Link>
-                  <button onClick={() => handleDelete(product.id)} className="bg-red py-1 px-3 rounded-lg hover:bg-red/80 transition">
-                    Hapus
-                  </button>
+                  {product.stok} {product.satuan}
                 </td>
+
+                {isAdmin ? (
+                  <td>
+                    <Link href={`/dashboard/products/${product.id}`}>
+                      <button className="bg-blue py-1 px-3 rounded-lg mr-2 hover:bg-blue/80 transition">
+                        Lihat
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="bg-red py-1 px-3 rounded-lg hover:bg-red/80 transition"
+                    >
+                      Hapus
+                    </button>
+                  </td>
+                ) : (
+                  <td className="p-3 text-center text-cream/50">—</td>
+                )}
               </tr>
             ))
           )}

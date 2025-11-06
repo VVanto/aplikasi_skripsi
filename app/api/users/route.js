@@ -58,31 +58,46 @@ export async function POST(request) {
   try {
     const { name, username, password, role } = await request.json();
 
-    if (!name || !username || !password || role === undefined) {
-      return NextResponse.json({ error: "Field wajib diisi" }, { status: 400 });
+    // Validasi
+    if (!name || !username || !password || !["0", "1"].includes(role)) {
+      return NextResponse.json(
+        { error: "Semua field wajib diisi dengan benar" },
+        { status: 400 }
+      );
     }
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
-    if (!token) return NextResponse.json({ error: "Login dulu" }, { status: 401 });
+    if (!token)
+      return NextResponse.json({ error: "Login dulu" }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
     actorId = payload.id;
 
     db = await getConnection();
 
-    const [existing] = await db.query("SELECT id FROM users WHERE username = ?", [username]);
-    if (existing.length > 0) return NextResponse.json({ error: "Username sudah ada" }, { status: 400 });
+    const [existing] = await db.query(
+      "SELECT id FROM users WHERE username = ?",
+      [username]
+    );
+    if (existing.length > 0)
+      return NextResponse.json(
+        { error: "Username sudah ada" },
+        { status: 400 }
+      );
 
     const hashed = await bcrypt.hash(password, 10);
     const [result] = await db.query(
       "INSERT INTO users (name, username, password, role) VALUES (?, ?, ?, ?)",
-      [name, username, hashed, role ? 1 : 0]
+      [name, username, hashed, role === "1" ? 1 : 0] // ← FIX
     );
 
     await logActivity(db, `Tambah user: ${name} (@${username})`, actorId);
 
-    return NextResponse.json({ message: "Sukses", id: result.insertId }, { status: 201 });
+    return NextResponse.json(
+      { message: "Sukses", id: result.insertId },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Users POST error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

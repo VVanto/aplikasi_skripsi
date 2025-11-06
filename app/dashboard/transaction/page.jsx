@@ -10,11 +10,32 @@ export default function TransaksiPage({ searchParams }) {
   const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null); // untuk loading state per tombol
+  const [deletingId, setDeletingId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // ← USER YANG LOGIN
+  const [userLoading, setUserLoading] = useState(true);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
 
+  // Ambil user login
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        }
+      } catch (err) {
+        console.error("Gagal ambil user login:", err);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
+  // Ambil data transaksi
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -64,7 +85,6 @@ export default function TransaksiPage({ searchParams }) {
 
       setTransaksi((prev) => prev.filter((trx) => trx.id !== id));
       setCount((prev) => prev - 1);
-
       alert("Transaksi berhasil dihapus!");
     } catch (err) {
       console.error("Delete error:", err);
@@ -74,7 +94,6 @@ export default function TransaksiPage({ searchParams }) {
     }
   };
 
-  // Format
   const formatDate = (date) => {
     if (!date || date === "0000-00-00 00:00:00") return "-";
     const parsedDate = new Date(date);
@@ -94,7 +113,8 @@ export default function TransaksiPage({ searchParams }) {
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
-  if (loading) {
+  // Tunggu user & data selesai loading
+  if (loading || userLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-olive">
         <div className="text-center">
@@ -112,15 +132,21 @@ export default function TransaksiPage({ searchParams }) {
     );
   }
 
+  const isAdmin = currentUser?.role === 1;
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Nama..." />
-        <Link href="/dashboard/transaction/add">
-          <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium">
-            Tambahkan
-          </button>
-        </Link>
+
+        {/* HIDE TOMBOL TAMBAHKAN JIKA BUKAN ADMIN */}
+        {isAdmin && (
+          <Link href="/dashboard/transaction/add">
+            <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium">
+              Tambahkan
+            </button>
+          </Link>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -130,7 +156,11 @@ export default function TransaksiPage({ searchParams }) {
               <th className="pb-3">User</th>
               <th className="pb-3">Tanggal</th>
               <th className="pb-3">Total Harga</th>
-              <th className="pb-3">Tindakan</th>
+              {isAdmin ? (
+                <th className="pb-3">Tindakan</th>
+              ) : (
+                <th className="pb-3">Detail</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -152,18 +182,23 @@ export default function TransaksiPage({ searchParams }) {
                     {formatPrice(trx.totalHarga)}
                   </td>
                   <td className="py-3 flex gap-2">
+                    {/* SELALU TAMPILKAN "LIHAT" */}
                     <Link href={`/dashboard/transaction/${trx.id}`}>
                       <button className="bg-blue py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-blue transition">
                         Lihat
                       </button>
                     </Link>
-                    <button
-                      onClick={() => handleDelete(trx.id)}
-                      disabled={deletingId === trx.id}
-                      className="bg-red py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-red transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {deletingId === trx.id ? "..." : "Hapus"}
-                    </button>
+
+                    {/* HANYA ADMIN YANG BISA HAPUS */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDelete(trx.id)}
+                        disabled={deletingId === trx.id}
+                        className="bg-red py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-red transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingId === trx.id ? "..." : "Hapus"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

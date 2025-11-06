@@ -83,12 +83,13 @@ const AddUserPage = () => {
           value={formData.role}
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="bg-olive w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
+          required
         >
-          <option disabled value="">
-            Apakah ini akun admin?
+          <option value="" disabled>
+            Pilih Role
           </option>
-          <option value="true">Ya</option>
-          <option value="false">Tidak</option>
+          <option value="1">Administrator</option>
+          <option value="0">Staf</option>
         </select>
 
         <button
