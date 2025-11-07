@@ -21,7 +21,7 @@ const SingleProductPage = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // Gunakan useCallback
+
   const loadProduct = useCallback(async () => {
     setFetching(true);
     try {
@@ -40,13 +40,13 @@ const SingleProductPage = () => {
     } finally {
       setFetching(false);
     }
-  }, [id, error]); // tambahkan dependencies
+  }, [id, error]); 
 
   useEffect(() => {
     loadProduct();
-  }, [loadProduct]); // gunakan loadProduct sebagai dependency
+  }, []); 
 
-  // ... sisa kode tetap sama
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
