@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // tambahkan useCallback
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Loading from "../../loading";
@@ -21,7 +21,8 @@ const SingleProductPage = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  const loadProduct = async () => {
+  // Gunakan useCallback
+  const loadProduct = useCallback(async () => {
     setFetching(true);
     try {
       const res = await fetch(`/api/products/${id}`, { cache: "no-store" });
@@ -39,12 +40,13 @@ const SingleProductPage = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id, error]); // tambahkan dependencies
 
   useEffect(() => {
     loadProduct();
-  }, [id]);
+  }, [loadProduct]); // gunakan loadProduct sebagai dependency
 
+  // ... sisa kode tetap sama
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -100,7 +102,7 @@ const SingleProductPage = () => {
 
   return (
     <div className="flex gap-6 mt-5">
-      {/* Kiri */}
+      {/* ... sisa JSX tetap sama ... */}
       <div className="flex-1 bg-olive p-6 rounded-lg space-y-4">
         <div className="w-full h-[500px] bg-lightOlive rounded-lg overflow-hidden flex items-center justify-center">
           {product.gambar ? (
@@ -145,7 +147,6 @@ const SingleProductPage = () => {
         </div>
       </div>
 
-      {/* Kanan */}
       <div className="flex-1 bg-olive p-6 rounded-lg">
         <h3 className="text-xl font-bold mb-4 text-cream">Edit Produk</h3>
         <form onSubmit={handleSubmit} className="space-y-5">

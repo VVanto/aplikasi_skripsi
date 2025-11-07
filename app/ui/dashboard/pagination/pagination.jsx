@@ -1,4 +1,3 @@
-// app/ui/dashboard/pagination/pagination.jsx
 "use client";
 
 import { usePathname, useSearchParams, useRouter } from "next/navigation";

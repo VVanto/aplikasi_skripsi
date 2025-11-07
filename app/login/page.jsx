@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Loading from "../dashboard/loading";
 
-export default function LoginPage() {
+// Pisahkan komponen yang menggunakan useSearchParams
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -74,7 +75,7 @@ export default function LoginPage() {
         <h1 className="text-6xl  mb-16 text-center">Login</h1>
         {error && <p className="text-red-500 mb-4 bg-red p-3 rounded-lg text-center">{error}</p>}
         <input
-          typze="text"
+          type="text"
           placeholder="Username"
           value={formData.username}
           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -100,5 +101,14 @@ export default function LoginPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+// Wrap dengan Suspense di export default
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<Loading message="Loading..." />}>
+      <LoginForm />
+    </Suspense>
   );
 }

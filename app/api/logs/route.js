@@ -1,6 +1,7 @@
-// app/api/logs/route.js
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
 
 const LIMIT = 10;
 
