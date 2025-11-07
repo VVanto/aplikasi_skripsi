@@ -101,13 +101,7 @@ const Sidebar = () => {
       <div>
 
         <div className="flex items-center gap-5 mb-5">
-          <Image
-            src="/noavatar.png"
-            alt="Avatar"
-            width={50}
-            height={50}
-            className="rounded-full object-cover"
-          />
+
           <div className="flex flex-col">
             <span className="font-medium">{user?.username || "User"}</span>
             <span className="text-sm text-cream">
@@ -116,7 +110,7 @@ const Sidebar = () => {
           </div>
         </div>
 
-       
+
         <ul className="list-none">
           {menuItems.map((cat) => (
             <li key={cat.titles}>
