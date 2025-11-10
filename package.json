@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "debounce": "^2.2.0",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
