@@ -9,7 +9,6 @@ import {
   MdSupervisedUserCircle,
 } from "react-icons/md";
 import MenuLink from "./menuLink/menuLink";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Loading from "@/app/dashboard/loading";

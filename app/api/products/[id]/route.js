@@ -1,10 +1,3 @@
-// ✏️ UPDATED: app/api/products/[id]/route.js
-// Perubahan: 
-// - Tambah import yang hilang
-// - Tambah logging di PUT (edit dengan detail perubahan)
-// - Tambah logging di DELETE (hapus dengan info stok)
-// - Fix await params
-
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/app/lib/activity";

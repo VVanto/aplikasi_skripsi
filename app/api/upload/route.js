@@ -1,42 +1,36 @@
-// app/api/upload/route.js
+import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 
-export async function POST(request) {
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function POST(req) {
   try {
-    const formData = await request.formData();
+    const formData = await req.formData();
     const file = formData.get("file");
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name.replace(/\s/g, "-")}`;
-    
-    // Path ke public/uploads
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    
-    // Buat folder uploads kalau belum ada
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    const uploadRes = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: "products" }, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        })
+        .end(buffer);
+    });
 
-    const filepath = join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    // Return URL yang bisa diakses
-    const url = `/uploads/${filename}`;
-
-    return NextResponse.json({ url, message: "Upload berhasil" });
-  } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ url: uploadRes.secure_url });
+  } catch (err) {
+    console.error("Upload error:", err);
+    return NextResponse.json({ error: "Gagal upload gambar" }, { status: 500 });
   }
 }

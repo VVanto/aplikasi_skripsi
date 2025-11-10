@@ -14,7 +14,28 @@ export default function SingleTransaksiPage() {
   const [detailtransaksi, setDetailtransaksi] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
 
+  // Ambil user login
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        }
+      } catch (err) {
+        console.error("Gagal ambil user:", err);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Ambil data transaksi
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,7 +74,8 @@ export default function SingleTransaksiPage() {
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
-  if (loading) {
+  // Tunggu semua loading selesai
+  if (loading || userLoading) {
     return (
       <div className="bg-olive p-5 rounded-lg mt-5">
         <Loading />
@@ -69,6 +91,8 @@ export default function SingleTransaksiPage() {
     );
   }
 
+  const isAdmin = currentUser?.role === 1;
+
   return (
     <div className="flex gap-5 mt-5">
       <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max">
@@ -80,11 +104,12 @@ export default function SingleTransaksiPage() {
         <p>Tanggal: {formatDate(transaksi.createdAt)}</p>
         <p>Total Harga: {formatPrice(transaksi.totalHarga)}</p>
       </div>
+
       <div className="flex-[3] bg-olive p-5 rounded-lg">
         <h3 className="text-xl font-bold mb-4">List Item</h3>
         <table className="w-full">
           <thead>
-            <tr className="p-3">
+            <tr className="p-3 text-cream/80">
               <td>ID Barang</td>
               <td>Nama Barang</td>
               <td>Kategori</td>
@@ -96,21 +121,28 @@ export default function SingleTransaksiPage() {
           <tbody>
             {detailtransaksi.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center p-3">
+                <td colSpan="6" className="text-center p-3 text-cream/70">
                   Tidak ada item
                 </td>
               </tr>
             ) : (
               detailtransaksi.map((item) => (
-                <tr key={item.detailId} className="p-3 hover:bg-lightOlive/30 transition">
+                <tr
+                  key={item.detailId}
+                  className="p-3 hover:bg-lightOlive/30 transition"
+                >
                   <td>{item.barangId}</td>
                   <td>
-                    <Link
-                      href={`/dashboard/products/${item.barangId}`}
-                      className="text-cream hover:text-cream/50 hover:font-medium transition"
-                    >
-                      {item.namaBarang}
-                    </Link>
+                    {isAdmin ? (
+                      <Link
+                        href={`/dashboard/products/${item.barangId}`}
+                        className="text-cream hover:text-cream/50 hover:font-medium transition"
+                      >
+                        {item.namaBarang}
+                      </Link>
+                    ) : (
+                      <span className="text-cream/70">{item.namaBarang}</span>
+                    )}
                   </td>
                   <td>{item.kategoriBarang}</td>
                   <td>{item.jumlahBarang}</td>

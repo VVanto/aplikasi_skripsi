@@ -33,16 +33,8 @@ export async function middleware(request) {
   }
 }
 
-// PENTING: Tentukan route mana aja yang dilindungi
 export const config = {
   matcher: [
-    /*
-     * Jalankan middleware untuk semua route KECUALI:
-     * - /login, /register (auth pages)
-     * - /api/auth/* (auth endpoints)
-     * - /_next/* (Next.js internal)
-     * - /static, /favicon.ico, dll
-     */
     "/((?!api/auth|login|_next/static|_next/image|favicon.ico).*)",
   ],
 };

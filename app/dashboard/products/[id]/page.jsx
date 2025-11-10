@@ -102,7 +102,6 @@ const SingleProductPage = () => {
 
   return (
     <div className="flex gap-6 mt-5">
-      {/* ... sisa JSX tetap sama ... */}
       <div className="flex-1 bg-olive p-6 rounded-lg space-y-4">
         <div className="w-full h-[500px] bg-lightOlive rounded-lg overflow-hidden flex items-center justify-center">
           {product.gambar ? (
@@ -113,7 +112,7 @@ const SingleProductPage = () => {
               height={500}
               className="object-cover w-full h-full"
               priority
-              unoptimized
+     
             />
           ) : (
             <div className="text-center text-cream/50">
