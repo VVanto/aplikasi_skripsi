@@ -51,7 +51,7 @@ export default function ProductsPage({ searchParams }) {
       }
     };
     fetchData();
-  }, [q, page, error]);
+  }, [q, page]);
 
   const handleDelete = async (id) => {
     confirm("Yakin ingin hapus produk ini?", async () => {

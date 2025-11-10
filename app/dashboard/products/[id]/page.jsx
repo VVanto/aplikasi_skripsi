@@ -40,7 +40,7 @@ const SingleProductPage = () => {
     } finally {
       setFetching(false);
     }
-  }, [id, error]); 
+  }, [id]); 
 
   useEffect(() => {
     loadProduct();

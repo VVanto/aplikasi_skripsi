@@ -87,7 +87,6 @@ const AddProductPage = () => {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <form onSubmit={handleSubmit} className="flex flex-wrap justify-between">
-        {/* Input fields sama, hanya ganti alert() → error() */}
         <input type="text" placeholder="Nama Produk" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required />
         <select value={formData.kate} onChange={(e) => setFormData({ ...formData, kate: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required>
           <option value="" className="bg-olive" disabled>Pilih Kategori</option>

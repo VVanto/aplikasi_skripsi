@@ -73,12 +73,14 @@ const SingleUserPage = () => {
 
   return (
     <div className="flex gap-5 mt-5">
-      <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max">
-        <div className="w-full h-[300px] relative rounded-lg overflow-hidden mb-5">
-          <Image src="/noavatar.png" alt="" fill />
-        </div>
+      <div className="flex flex-col flex-1 bg-olive p-5 rounded-lg h-max text-5xl">
         {user.name}
+        <div className="text-2xl mt-2">@{user.username}</div>
+        <div className="text-2xl mt-2">
+          {user.role === 1 ? "Administrator" : "Staf"}
+        </div>
       </div>
+
       <div className="flex-[3] bg-olive p-5 rounded-lg">
         <form onSubmit={handleSubmit} className="flex flex-col">
           <input type="hidden" name="id" value={user.id} />
