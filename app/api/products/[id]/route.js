@@ -6,7 +6,6 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
-// === GET: Ambil 1 Produk ===
 export async function GET(request, { params }) {
   let db;
   try {
@@ -31,7 +30,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// === PUT: Update Produk ===
+
 export async function PUT(request, { params }) {
   let db = null;
   let actorId = null;

@@ -108,7 +108,7 @@ const SingleProductPage = () => {
             <Image
               src={product.gambar}
               alt={product.name}
-              width={500}
+              width={500} 
               height={500}
               className="object-cover w-full h-full"
               priority
