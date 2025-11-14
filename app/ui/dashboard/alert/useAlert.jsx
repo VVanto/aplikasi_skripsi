@@ -1,5 +1,6 @@
 // app/ui/dashboard/alert/useAlert.js
 import { create } from "zustand";
+import { useCallback } from "react";
 
 const useAlertStore = create((set) => ({
   alert: null,
@@ -13,25 +14,37 @@ const useAlertStore = create((set) => ({
 export const useAlert = () => {
   const { alert, showAlert, hideAlert } = useAlertStore();
 
-  const success = (message, duration = 3000) =>
-    showAlert({ type: "success", message, duration });
+  // Memoize semua fungsi agar referensinya stabil!
+  const success = useCallback(
+    (message, duration = 3000) =>
+      showAlert({ type: "success", message, duration }),
+    [showAlert]
+  );
 
-  const error = (message, duration = 4000) =>
-    showAlert({ type: "error", message, duration });
+  const error = useCallback(
+    (message, duration = 4000) =>
+      showAlert({ type: "error", message, duration }),
+    [showAlert]
+  );
 
-  const confirm = (message, onConfirm, onCancel) =>
-    showAlert({
-      type: "confirm",
-      message,
-      onConfirm: () => {
-        onConfirm();
-        hideAlert();
-      },
-      onCancel: () => {
-        if (onCancel) onCancel();
-        hideAlert();
-      },
-    });
+  const confirm = useCallback(
+    (message, onConfirm, onCancel) =>
+      showAlert({
+        type: "confirm",
+        message,
+        onConfirm: () => {
+          onConfirm?.();
+          hideAlert();
+        },
+        onCancel: () => {
+          onCancel?.();
+          hideAlert();
+        },
+      }),
+    [showAlert, hideAlert]
+  );
 
-  return { alert, success, error, confirm, hide: hideAlert };
+  const hide = useCallback(() => hideAlert(), [hideAlert]);
+
+  return { alert, success, error, confirm, hide };
 };

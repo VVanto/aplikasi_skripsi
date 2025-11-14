@@ -3,21 +3,26 @@
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
+import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
 import { useEffect, useState } from "react";
+import Loading from "../loading";               // ← komponen loading
 
 export default function TransaksiPage({ searchParams }) {
+  const { success, error, confirm } = useAlert();
+
   const [transaksi, setTransaksi] = useState([]);
   const [count, setCount] = useState(0);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null); // ← USER YANG LOGIN
+  const [currentUser, setCurrentUser] = useState(null); // USER YANG LOGIN
   const [userLoading, setUserLoading] = useState(true);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
 
-  // Ambil user login
+  /* -------------------------------------------------
+     1. Ambil user login
+  ------------------------------------------------- */
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -35,7 +40,9 @@ export default function TransaksiPage({ searchParams }) {
     fetchCurrentUser();
   }, []);
 
-  // Ambil data transaksi
+  /* -------------------------------------------------
+     2. Ambil data transaksi
+  ------------------------------------------------- */
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -50,10 +57,9 @@ export default function TransaksiPage({ searchParams }) {
 
         setTransaksi(Array.isArray(data.transaksi) ? data.transaksi : []);
         setCount(data.count || 0);
-        setError(null);
       } catch (err) {
         console.error(err);
-        setError(err.message);
+        error(err.message);
         setTransaksi([]);
         setCount(0);
       } finally {
@@ -64,48 +70,50 @@ export default function TransaksiPage({ searchParams }) {
     fetchData();
   }, [q, page]);
 
+  /* -------------------------------------------------
+     3. Hapus transaksi – pakai confirm() & success()
+  ------------------------------------------------- */
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Apakah Anda yakin ingin menghapus transaksi ini?"
-    );
-    if (!confirmDelete) return;
+    confirm("Apakah Anda yakin ingin menghapus transaksi ini?", async () => {
+      setDeletingId(id);
+      try {
+        const res = await fetch(`/api/transaction/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
 
-    setDeletingId(id);
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Gagal menghapus");
+        }
 
-    try {
-      const res = await fetch(`/api/transaction/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Gagal menghapus");
+        setTransaksi((prev) => prev.filter((trx) => trx.id !== id));
+        setCount((prev) => prev - 1);
+        success("Transaksi berhasil dihapus!");
+      } catch (err) {
+        console.error("Delete error:", err);
+        error(`Gagal menghapus: ${err.message}`);
+      } finally {
+        setDeletingId(null);
       }
-
-      setTransaksi((prev) => prev.filter((trx) => trx.id !== id));
-      setCount((prev) => prev - 1);
-      alert("Transaksi berhasil dihapus!");
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert(`Gagal menghapus: ${err.message}`);
-    } finally {
-      setDeletingId(null);
-    }
+    });
   };
 
+  /* -------------------------------------------------
+     4. Helper format
+  ------------------------------------------------- */
   const formatDate = (date) => {
     if (!date || date === "0000-00-00 00:00:00") return "-";
-    const parsedDate = new Date(date);
-    return isNaN(parsedDate.getTime())
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime())
       ? "-"
-      : parsedDate.toLocaleString("id-ID", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      : parsed.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
   };
 
   const formatPrice = (price) => {
@@ -113,24 +121,10 @@ export default function TransaksiPage({ searchParams }) {
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
-  // Tunggu user & data selesai loading
-  if (loading || userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-olive">
-        <div className="text-center">
-          <div className="loader"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-olive p-5 rounded-lg mt-5">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
+  /* -------------------------------------------------
+     5. Loading & error (pakai Loading component)
+  ------------------------------------------------- */
+  if (loading || userLoading) return <Loading />;
 
   const isAdmin = currentUser?.role === 1;
 
@@ -156,13 +150,10 @@ export default function TransaksiPage({ searchParams }) {
               <th className="pb-3">User</th>
               <th className="pb-3">Tanggal</th>
               <th className="pb-3">Total Harga</th>
-              {isAdmin ? (
-                <th className="pb-3">Tindakan</th>
-              ) : (
-                <th className="pb-3">Detail</th>
-              )}
+              {isAdmin ? <th className="pb-3">Tindakan</th> : <th className="pb-3">Detail</th>}
             </tr>
           </thead>
+
           <tbody>
             {transaksi.length === 0 ? (
               <tr>
@@ -178,9 +169,8 @@ export default function TransaksiPage({ searchParams }) {
                 >
                   <td className="py-3">{trx.name || "-"}</td>
                   <td className="py-3">{formatDate(trx.createdAt)}</td>
-                  <td className="py-3 font-medium">
-                    {formatPrice(trx.totalHarga)}
-                  </td>
+                  <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
+
                   <td className="py-3 flex gap-2">
                     {/* SELALU TAMPILKAN "LIHAT" */}
                     <Link href={`/dashboard/transaction/${trx.id}`}>

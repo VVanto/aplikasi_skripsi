@@ -61,7 +61,7 @@ const Chart = () => {
   if (error || data.length === 0) {
     return (
       <div className="h-[450px] bg-olive text-cream rounded-lg p-5 flex items-center justify-center">
-        <p className="text-red-400">
+        <p className="text-red">
           {error || "Belum ada transaksi bulan ini"}
         </p>
       </div>

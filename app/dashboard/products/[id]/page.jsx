@@ -136,7 +136,7 @@ const SingleProductPage = () => {
           <p className="text-cream/70 text-sm mb-1">Persentase Stok</p>
           <div className="w-full bg-gray-700 rounded-full h-3">
             <div
-              className={`h-3 rounded-full transition-all ${percentage < 10 ? "bg-red-500" : "bg-sage"}`}
+              className={`h-3 rounded-full transition-all ${percentage < 10 ? "bg-red" : "bg-sage"}`}
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
           </div>

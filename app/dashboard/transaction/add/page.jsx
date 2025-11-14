@@ -6,7 +6,7 @@ import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
 
 export default function AddTransaksiPage() {
   const router = useRouter();
-  const { success, error, confirm } = useAlert();
+  const { success, error } = useAlert();
 
   const [formData, setFormData] = useState({ tanggal: "" });
   const [items, setItems] = useState([
@@ -15,6 +15,16 @@ export default function AddTransaksiPage() {
   const [products, setProducts] = useState([]);
   const [totalHarga, setTotalHarga] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const now = new Date();
+
+    // ---- CARA OTOMATIS ----
+    const offsetMs = now.getTimezoneOffset() * 60_000;    // offset dalam ms (negatif untuk +zone)
+    const localTime = new Date(now.getTime() - offsetMs); // konversi ke lokal
+    const formatted = localTime.toISOString().slice(0, 16);
+    setFormData({ tanggal: formatted });
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -181,17 +191,15 @@ export default function AddTransaksiPage() {
 
         {/* TANGGAL */}
         <div className="mb-6">
-          <label className="block mb-2 font-semibold text-cream">
+          <label className="block mb-2 font-semibold bg-olive text-cream">
             Tanggal & Waktu
           </label>
           <input
             type="datetime-local"
             value={formData.tanggal}
-            onChange={(e) =>
-              setFormData({ ...formData, tanggal: e.target.value })
-            }
-            className="bg-transparent border border-lightOlive p-3 rounded-lg w-full text-cream focus:border-sage focus:outline-none transition"
-            required
+            onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+            className="bg-transparent  p-3 rounded-lg w-full text-cream "
+            disabled
           />
         </div>
 
@@ -296,7 +304,7 @@ export default function AddTransaksiPage() {
         <button
           type="button"
           onClick={addItem}
-          className="bg-blue-900 hover:bg-blue-800 p-3 rounded-lg mb-4 font-medium transition text-cream"
+          className="bg-blue hover:bg-blue/80 p-3 rounded-lg mb-4 font-medium transition text-cream"
         >
           + Tambah Item Baru
         </button>
@@ -310,7 +318,7 @@ export default function AddTransaksiPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-olive"
+          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed "
         >
           {loading ? "Menyimpan..." : "Simpan Transaksi"}
         </button>

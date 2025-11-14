@@ -86,7 +86,7 @@ export default function SingleTransaksiPage() {
   if (error) {
     return (
       <div className="bg-olive p-5 rounded-lg mt-5">
-        <p className="text-red-500">Error: {error}</p>
+        <p className="text-red">Error: {error}</p>
       </div>
     );
   }

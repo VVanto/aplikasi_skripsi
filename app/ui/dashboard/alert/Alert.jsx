@@ -18,9 +18,9 @@ const Alert = () => {
   if (!alert) return null;
 
   const icons = {
-    success: <MdCheckBox className="text-5xl text-green-400" />,
-    error: <MdError className="text-5xl text-red-400" />,
-    confirm: <MdHelp className="text-5xl text-blue-400" />,
+    success: <MdCheckBox className="text-5xl text-green" />,
+    error: <MdError className="text-5xl text-red" />,
+    confirm: <MdHelp className="text-5xl text-blue" />,
   };
 
   const colors = {

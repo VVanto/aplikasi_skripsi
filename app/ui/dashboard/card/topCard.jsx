@@ -47,7 +47,7 @@ const TopProductCard = () => {
   }, []);
 
   if (loading || userLoading) {
-    return (<div className="bg-olive p-6 rounded-lg animate-pulse">
+    return (<div className="bg-olive p-6 rounded-lg animate-pulse w-[400px]">
       <div className="h-6 bg-gray-700 rounded w-40 mb-4"></div>
       <div className="space-y-3">
         {[1, 2, 3].map(i => (

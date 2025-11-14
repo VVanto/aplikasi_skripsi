@@ -35,7 +35,7 @@ const MonthlySalesCard = () => {
 
   if (loading) {
     return (
-      <div className="bg-olive p-5 rounded-lg flex gap-5 animate-pulse">
+      <div className="bg-olive p-5 rounded-lg flex gap-5 animate-pulse w-[300px]">
         <div className="w-12 h-12 bg-gray-700 rounded-full"></div>
         <div className="flex flex-col gap-2 flex-1">
           <div className="h-4 bg-gray-700 rounded w-32"></div>

@@ -49,16 +49,16 @@ const ForecastStockCard = () => {
     }, []);
 
     const riskColor = {
-        critical: "text-red-500",
+        critical: "text-red",
         high: "text-orange-400",
         medium: "text-yellow-400",
-        low: "text-green-400",
+        low: "text-green",
     };
     const riskBg = {
-        critical: "bg-red-900/50 border-red-500",
+        critical: "bg-red/50 border-red",
         high: "bg-orange-900/30 border-orange-500",
         medium: "bg-yellow-900/20 border-yellow-500",
-        low: "bg-green-900/20 border-green-500",
+        low: "bg-green/20 border-green",
     };
     const formatDays = (days) => {
         if (days <= 0) return "Habis!";
@@ -81,7 +81,7 @@ const ForecastStockCard = () => {
     const isAdmin = currentUser?.role === 1;
 
     return (
-        <div className="bg-olive p-5 rounded-lg shadow-md max-w-md w-full">
+        <div className="bg-olive p-5 rounded-lg shadow-md max-w-md w-[400px]">
             <h3 className="text-base font-bold text-cream mb-4">
                 Prediksi Stok Habis Terdekat
             </h3>
@@ -117,7 +117,7 @@ const ForecastStockCard = () => {
                                 </div>
                                 <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
                                     <div
-                                        className={`h-2 rounded-full transition-all ${item.risk === "critical" ? "bg-red-500" :
+                                        className={`h-2 rounded-full transition-all ${item.risk === "critical" ? "bg-red" :
                                             item.risk === "high" ? "bg-orange-400" :
                                                 item.risk === "medium" ? "bg-yellow-400" : "bg-green-400"
                                             }`}

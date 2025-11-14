@@ -116,7 +116,7 @@ const RightBar = () => {
                                                                 style={{ width: `${item.percentage}%` }}
                                                             />
                                                         </div>
-                                                        <span className="text-xs text-red-300 font-bold whitespace-nowrap">
+                                                        <span className="text-xs text-red font-bold whitespace-nowrap">
                                                             {item.percentage}%
                                                         </span>
                                                     </div>
