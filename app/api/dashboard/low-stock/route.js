@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // app/api/dashboard/low-stock/route.js
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
