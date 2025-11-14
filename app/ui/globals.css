@@ -82,10 +82,46 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #3C3D37;
+  background-color: #3c3d37;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #5c5e54;
+}
+
+.wave-container::before,
+.wave-container::after {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-top-left-radius: 40%;
+  border-top-right-radius: 45%;
+  border-bottom-left-radius: 35%;
+  border-bottom-right-radius: 40%;
+  z-index: 0;
+}
+
+.wave-container::before {
+  left: 40%;
+  bottom: -130%;
+  background-color: rgba(69, 105, 144, 0.15);
+  animation: waves 6s infinite linear;
+}
+
+.wave-container::after {
+  left: 35%;
+  bottom: -125%;
+  background-color: rgba(2, 128, 144, 0.2);
+  animation: waves 7s infinite linear;
+}
+
+@keyframes waves {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

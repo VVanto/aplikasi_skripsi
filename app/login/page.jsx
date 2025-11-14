@@ -42,14 +42,12 @@ function LoginForm() {
         return;
       }
 
-      // 2. Preload data dashboard (contoh: transaksi)
+      // 2. Preload data dashboard
       const preloadPromises = [
         fetch("/api/transaction?page=1", { credentials: "include" }),
         fetch("/api/users", { credentials: "include" }),
-        // tambah API lain sesuai kebutuhan
       ];
 
-      // Tunggu semua selesai
       const responses = await Promise.all(preloadPromises);
       const hasError = responses.some((res) => !res.ok);
 
@@ -66,40 +64,52 @@ function LoginForm() {
   };
 
   if (loading) {
-    return <Loading message="Memuat dashboard..." />;
+    return <Loading />;
   }
 
   return (
-    <div className="w-full h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-olive p-12 rounded-lg w-[500px] h-[500px] flex flex-col justify-center">
-        <h1 className="text-6xl  mb-16 text-center">Login</h1>
-        {error && <p className="text-red mb-4 bg-red p-3 rounded-lg text-center">{error}</p>}
-        <input
-          type="text"
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-          className="px-7 py-4 my-2 w-full border border-lightOlive rounded-lg bg-olive "
-          required
-          disabled={loading}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="px-7 py-4 my-2 w-full border border-lightOlive rounded-lg bg-olive "
-          required
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-7 py-4 mt-10 bg-sage  rounded-lg disabled:opacity-50"
-        >
-          {loading ? "Memuat..." : "Login"}
-        </button>
-      </form>
+    <div className="w-full h-screen flex items-center justify-center bg-darkOlive overflow-hidden">
+      <div className="wave-container relative bg-olive rounded-[10px] w-[550px] p-10 shadow-[5px_10px_10px_rgba(2,128,144,0.2)] overflow-hidden transition-all duration-300 hover:shadow-[5px_15px_20px_rgba(2,128,144,0.3)]">
+        <div className="grid relative z-10" onSubmit={handleSubmit}>
+          <h1 className="text-5xl font-bold mb-8 text-center">Login</h1>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-md bg-red-100 border border-red-300">
+              <p className="text-red-700 text-center text-sm">{error}</p>
+            </div>
+          )}
+          <div>
+            <input
+              type="text"
+              placeholder="Username"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className="block w-full px-3 py-2.5 mt-4 text-base bg-lightOlive border-0 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#028090] transition-all"
+              required
+              disabled={loading}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onKeyPress={(e) => e.key === 'Enter' && handleSubmit(e)}
+              className="block w-full px-3 py-2.5 mt-4 text-base bg-lightOlive border-0 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#028090] transition-all"
+              required
+              disabled={loading}
+            />
+
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="mt-6 px-8 py-2.5  uppercase font-semibold bg-darkOlive rounded-md border-0 cursor-pointer transition-all duration-300 hover:bg-darkOlive/60 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Memuat..." : "Login"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -107,7 +117,7 @@ function LoginForm() {
 // Wrap dengan Suspense di export default
 export default function LoginPage() {
   return (
-    <Suspense fallback={<Loading message="Loading..." />}>
+    <Suspense fallback={<Loading />}>
       <LoginForm />
     </Suspense>
   );
