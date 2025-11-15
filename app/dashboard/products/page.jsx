@@ -11,8 +11,9 @@ export default function ProductsPage({ searchParams }) {
   const { success, error, confirm } = useAlert();
   const [products, setProducts] = useState([]);
   const [count, setCount] = useState(0);
-  const [currentUser, setCurrentUser] = useState(null); // ← USER YANG LOGIN
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
@@ -39,8 +40,9 @@ export default function ProductsPage({ searchParams }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const categoryParam = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : "";
         const res = await fetch(
-          `/api/products?q=${encodeURIComponent(q)}&page=${page}`
+          `/api/products?q=${encodeURIComponent(q)}&page=${page}${categoryParam}`
         );
         if (!res.ok) throw new Error(`Gagal fetch produk: ${res.statusText}`);
         const data = await res.json();
@@ -51,7 +53,7 @@ export default function ProductsPage({ searchParams }) {
       }
     };
     fetchData();
-  }, [q, page]);
+  }, [q, page, selectedCategory]);
 
   const handleDelete = async (id) => {
     confirm("Yakin ingin hapus produk ini?", async () => {
@@ -67,6 +69,10 @@ export default function ProductsPage({ searchParams }) {
     });
   };
 
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
   const formatPrice = (price) => `Rp ${Number(price).toLocaleString("id-ID")}`;
   const formatDate = (date) => {
     if (!date || date === "0000-00-00 00:00:00") return "-";
@@ -80,10 +86,38 @@ export default function ProductsPage({ searchParams }) {
 
   const isAdmin = currentUser?.role === 1;
 
+  const categories = [
+    "Bahan Utama",
+    "Cat & Pelapis",
+    "Peralatan & Perkakas",
+    "Sanitasi",
+    "Kelistrikan",
+    "Kayu & Logam",
+    "Interior & Finishing",
+    "Eksterior",
+  ];
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
-      <div className="flex items-center justify-between mb-5">
-        <Search placeholder="Cari Produk..." />
+      <div className="flex items-center justify-between mb-5 gap-3">
+        <div className="flex items-center gap-3 flex-1">
+          <Search placeholder="Cari Produk..." />
+          
+          <select
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            className="bg-lightOlive text-cream p-2 rounded-lg border-none outline-none cursor-pointer hover:bg-lightOlive/80 transition"
+          >
+            <option value="" className="bg-olive">
+              Semua Kategori
+            </option>
+            {categories.map((cat) => (
+              <option className="bg-olive" key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {isAdmin && (
           <Link href="/dashboard/products/add">

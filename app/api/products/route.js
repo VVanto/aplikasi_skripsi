@@ -1,6 +1,3 @@
-// ✏️ UPDATED: app/api/products/route.js
-// Perubahan: Tambah import yang hilang (jwtVerify, cookies, JWT_SECRET)
-
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/app/lib/activity";
@@ -13,18 +10,37 @@ const ITEMS_PER_PAGE = 5;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") || "";
+  const category = searchParams.get("category") || "";
   const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
 
   let db;
   try {
     db = await getConnection();
 
-    const where = q ? "WHERE name LIKE ?" : "";
-    const params = q ? [`%${q}%`] : [];
+    // Build WHERE clause dinamis
+    const conditions = [];
+    const params = [];
 
-    const [countResult] = await db.query(`SELECT COUNT(*) as total FROM products ${where}`, params);
+    if (q) {
+      conditions.push("name LIKE ?");
+      params.push(`%${q}%`);
+    }
+
+    if (category) {
+      conditions.push("kate = ?");
+      params.push(category);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // Count total
+    const [countResult] = await db.query(
+      `SELECT COUNT(*) as total FROM products ${where}`,
+      params
+    );
     const total = countResult[0].total;
 
+    // Get products
     const [products] = await db.query(
       `SELECT * FROM products ${where} ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
       [...params, ITEMS_PER_PAGE, (page - 1) * ITEMS_PER_PAGE]

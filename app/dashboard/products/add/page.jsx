@@ -10,7 +10,13 @@ const AddProductPage = () => {
   const { success, error } = useAlert();
 
   const [formData, setFormData] = useState({
-    name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: "",
+    name: "",
+    kate: "",
+    desc: "",
+    harga: "",
+    stok: "",
+    satuan: "",
+    stok_maksimal: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -69,7 +75,15 @@ const AddProductPage = () => {
 
       if (res.ok) {
         success("Produk berhasil ditambahkan!");
-        setFormData({ name: "", kate: "", desc: "", harga: "", stok: "", satuan: "", stok_maksimal: "" });
+        setFormData({
+          name: "",
+          kate: "",
+          desc: "",
+          harga: "",
+          stok: "",
+          satuan: "",
+          stok_maksimal: "",
+        });
         setImageFile(null);
         setImagePreview(null);
         router.push("/dashboard/products");
@@ -87,11 +101,36 @@ const AddProductPage = () => {
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
       <form onSubmit={handleSubmit} className="flex flex-wrap justify-between">
-        <input type="text" placeholder="Nama Produk" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required />
-        <select value={formData.kate} onChange={(e) => setFormData({ ...formData, kate: e.target.value })} className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7" required>
-          <option value="" className="bg-olive" disabled>Pilih Kategori</option>
-          {["Bahan Utama", "Cat & Pelapis", "Peralatan & Perkakas", "Sanitasi", "Kelistrikan", "Kayu & Logam", "Interior & Finishing", "Eksterior"].map(cat => (
-            <option className="bg-olive" key={cat} value={cat}>{cat}</option>
+        <input
+          type="text"
+          placeholder="Nama Produk"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
+          required
+        />
+        <select
+          value={formData.kate}
+          onChange={(e) => setFormData({ ...formData, kate: e.target.value })}
+          className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
+          required
+        >
+          <option value="" className="bg-olive" disabled>
+            Pilih Kategori
+          </option>
+          {[
+            "Bahan Utama",
+            "Cat & Pelapis",
+            "Peralatan & Perkakas",
+            "Sanitasi",
+            "Kelistrikan",
+            "Kayu & Logam",
+            "Interior & Finishing",
+            "Eksterior",
+          ].map((cat) => (
+            <option className="bg-olive" key={cat} value={cat}>
+              {cat}
+            </option>
           ))}
         </select>
 
@@ -101,15 +140,19 @@ const AddProductPage = () => {
           value={formData.stok}
           onChange={(e) => setFormData({ ...formData, stok: e.target.value })}
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-          required min="0"
+          required
+          min="0"
         />
         <input
           type="number"
           placeholder="Stok Maksimal (untuk peringatan)"
           value={formData.stok_maksimal}
-          onChange={(e) => setFormData({ ...formData, stok_maksimal: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, stok_maksimal: e.target.value })
+          }
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-          required min="1"
+          required
+          min="1"
         />
 
         <input
@@ -118,7 +161,9 @@ const AddProductPage = () => {
           value={formData.harga}
           onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
           className="bg-transparent border border-lightOlive p-7 w-5/12 rounded-lg mb-7"
-          required min="0" step="1000"
+          required
+          min="0"
+          step="1000"
         />
         <input
           type="text"
