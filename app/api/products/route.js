@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
