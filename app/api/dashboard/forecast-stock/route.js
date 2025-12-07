@@ -24,7 +24,7 @@ export async function GET() {
       GROUP BY p.id, p.name, p.stok, p.satuan
       HAVING current_stock > 0
       ORDER BY total_sold DESC, current_stock ASC
-      LIMIT 5
+      LIMIT 10
     `);
 
     if (rows.length === 0) {

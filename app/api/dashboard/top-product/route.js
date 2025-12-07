@@ -20,7 +20,7 @@ export async function GET() {
       LEFT JOIN detailtransaksi dt ON p.id = dt.barangId
       GROUP BY p.id, p.name, p.satuan
       ORDER BY total_terjual DESC
-      LIMIT 5
+      LIMIT 10
     `);
 
     if (rows.length === 0) {

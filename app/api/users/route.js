@@ -9,7 +9,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-const LIMIT = 5;
+const LIMIT = 10;
 
 export async function GET(request) {
   let db = null;
