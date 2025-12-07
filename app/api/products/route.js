@@ -5,11 +5,13 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const ITEMS_PER_PAGE = 5;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") || "";
   const category = searchParams.get("category") || "";
+  const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
 
   let db;
   try {
@@ -40,8 +42,8 @@ export async function GET(request) {
 
     // Get products
     const [products] = await db.query(
-      `SELECT * FROM products ${where} ORDER BY createdAt DESC`,
-      params
+      `SELECT * FROM products ${where} ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
+      [...params, ITEMS_PER_PAGE, (page - 1) * ITEMS_PER_PAGE]
     );
 
     return NextResponse.json({ products, count: total });
