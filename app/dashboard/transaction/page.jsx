@@ -15,17 +15,8 @@ export default function TransaksiPage({ searchParams }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
-  // Live clock (akan ditambah +7 jam nanti)
-  const [now, setNow] = useState(new Date());
-
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
-
-  // Update jam setiap detik
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   /* -------------------------------------------------
      1. Ambil user login
@@ -101,7 +92,7 @@ export default function TransaksiPage({ searchParams }) {
   };
 
   /* -------------------------------------------------
-     4. FUNGSI +7 JAM (WITA) + LIVE CLOCK
+     4. FUNGSI FORMAT TANGGAL SAJA (TANPA JAM)
   ------------------------------------------------- */
   const add7Hours = (date) => {
     const d = new Date(date);
@@ -114,35 +105,15 @@ export default function TransaksiPage({ searchParams }) {
 
     const originalDate = new Date(dateString);
     const witaDate = add7Hours(originalDate);     // +7 jam dari database
-    const witaNow = add7Hours(now);               // Live clock juga +7 jam
 
-    // Apakah transaksi ini "hari ini" di zona WITA?
-    const isToday =
-      witaDate.getFullYear() === witaNow.getFullYear() &&
-      witaDate.getMonth() === witaNow.getMonth() &&
-      witaDate.getDate() === witaNow.getDate();
-
+    // Format tanggal saja tanpa jam
     const datePart = witaDate.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
 
-    let timePart;
-    if (isToday) {
-      timePart = witaNow.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    } else {
-      timePart = witaDate.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
-
-    return `${datePart}, ${timePart}`;
+    return datePart;
   };
 
   const formatPrice = (price) => {
@@ -175,7 +146,7 @@ export default function TransaksiPage({ searchParams }) {
           <thead>
             <tr className="text-left border-b border-cream/20">
               <th className="pb-3">User</th>
-              <th className="pb-3">Tanggal & Jam</th>
+              <th className="pb-3">Tanggal</th>
               <th className="pb-3">Total Harga</th>
               {isAdmin ? <th className="pb-3">Tindakan</th> : <th className="pb-3">Detail</th>}
             </tr>
@@ -188,46 +159,34 @@ export default function TransaksiPage({ searchParams }) {
                 </td>
               </tr>
             ) : (
-              transaksi.map((trx) => {
-                const witaDate = add7Hours(trx.createdAt);
-                const witaNow = add7Hours(now);
-                const isToday =
-                  witaDate.getFullYear() === witaNow.getFullYear() &&
-                  witaDate.getMonth() === witaNow.getMonth() &&
-                  witaDate.getDate() === witaNow.getDate();
-
-                return (
-                  <tr
-                    key={trx.id}
-                    className="border-b border-cream/10 hover:bg-olive/50 transition"
-                  >
-                    <td className="py-3">{trx.name || "-"}</td>
-                    <td className="py-3 font-medium">
-                      <span className={isToday ? "text-green-400" : ""}>
-                        {formatDate(trx.createdAt)}
-                      </span>
-                      {isToday && <span className="ml-2 animate-pulse">● Live</span>}
-                    </td>
-                    <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
-                    <td className="py-3 flex gap-2">
-                      <Link href={`/dashboard/transaction/${trx.id}`}>
-                        <button className="bg-blue py-1 px-3 rounded-lg text-sm hover:bg-blue/80 transition">
-                          Lihat
-                        </button>
-                      </Link>
-                      {isAdmin && (
-                        <button
-                          onClick={() => handleDelete(trx.id)}
-                          disabled={deletingId === trx.id}
-                          className="bg-red py-1 px-3 rounded-lg text-sm hover:bg-red/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {deletingId === trx.id ? "..." : "Hapus"}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
+              transaksi.map((trx) => (
+                <tr
+                  key={trx.id}
+                  className="border-b border-cream/10 hover:bg-olive/50 transition"
+                >
+                  <td className="py-3">{trx.name || "-"}</td>
+                  <td className="py-3 font-medium">
+                    {formatDate(trx.createdAt)}
+                  </td>
+                  <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
+                  <td className="py-3 flex gap-2">
+                    <Link href={`/dashboard/transaction/${trx.id}`}>
+                      <button className="bg-blue py-1 px-3 rounded-lg text-sm hover:bg-blue/80 transition">
+                        Lihat
+                      </button>
+                    </Link>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDelete(trx.id)}
+                        disabled={deletingId === trx.id}
+                        className="bg-red py-1 px-3 rounded-lg text-sm hover:bg-red/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingId === trx.id ? "..." : "Hapus"}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
