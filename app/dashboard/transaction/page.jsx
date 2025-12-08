@@ -102,19 +102,18 @@ export default function TransaksiPage({ searchParams }) {
   /* -------------------------------------------------
      4. Helper format
   ------------------------------------------------- */
-  const formatDate = (date) => {
-    if (!date || date === "0000-00-00 00:00:00") return "-";
-    const parsed = new Date(date);
-    return isNaN(parsed.getTime())
-      ? "-"
-      : parsed.toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-  };
+const formatDate = (dateString) => {
+  if (!dateString || dateString.includes("0000-00-00")) return "-";
+
+  return new Date(dateString).toLocaleString("id-ID", {
+    timeZone: "Asia/Makassar", 
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
   const formatPrice = (price) => {
     if (!price && price !== 0) return "Rp 0";
