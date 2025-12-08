@@ -1,5 +1,4 @@
 "use client";
-
 import Pagination from "@/app/ui/dashboard/pagination/pagination";
 import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
@@ -9,7 +8,6 @@ import Loading from "../loading";
 
 export default function TransaksiPage({ searchParams }) {
   const { success, error, confirm } = useAlert();
-
   const [transaksi, setTransaksi] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -17,8 +15,17 @@ export default function TransaksiPage({ searchParams }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
+  // Live clock state
+  const [now, setNow] = useState(new Date());
+
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
+
+  // Update jam setiap detik
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   /* -------------------------------------------------
      1. Ambil user login
@@ -51,10 +58,8 @@ export default function TransaksiPage({ searchParams }) {
           `/api/transaction?q=${encodeURIComponent(q)}&page=${page}`
         );
         if (!res.ok) throw new Error(`Gagal fetch: ${res.statusText}`);
-
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-
         setTransaksi(Array.isArray(data.transaksi) ? data.transaksi : []);
         setCount(data.count || 0);
       } catch (err) {
@@ -66,7 +71,6 @@ export default function TransaksiPage({ searchParams }) {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [q, page, error]);
 
@@ -81,12 +85,10 @@ export default function TransaksiPage({ searchParams }) {
           method: "DELETE",
           credentials: "include",
         });
-
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || "Gagal menghapus");
         }
-
         setTransaksi((prev) => prev.filter((trx) => trx.id !== id));
         setCount((prev) => prev - 1);
         success("Transaksi berhasil dihapus!");
@@ -99,19 +101,42 @@ export default function TransaksiPage({ searchParams }) {
   };
 
   /* -------------------------------------------------
-     4. FORMAT TANGGAL PAKAI JAM BALI (WITA) SELAMANYA
+     4. FORMAT TANGGAL + JAM LIVE (LOKAL USER)
   ------------------------------------------------- */
   const formatDate = (dateString) => {
     if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-    return new Date(dateString).toLocaleString("id-ID", {
-      timeZone: "Asia/Makassar",    // WITA = Bali, Denpasar, Makassar → UTC+8
+    const date = new Date(dateString);
+
+    // Cek apakah transaksi hari ini
+    const isToday =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+
+    const datePart = date.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
+
+    let timePart;
+    if (isToday) {
+      // Hari ini → jam + detik + live
+      timePart = now.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    } else {
+      // Bukan hari ini → jam biasa (tanpa detik)
+      timePart = date.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    return `${datePart}, ${timePart}`;
   };
 
   const formatPrice = (price) => {
@@ -130,7 +155,6 @@ export default function TransaksiPage({ searchParams }) {
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Nama..." />
-
         {isAdmin && (
           <Link href="/dashboard/transaction/add">
             <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium hover:bg-sage/80 transition">
@@ -145,12 +169,11 @@ export default function TransaksiPage({ searchParams }) {
           <thead>
             <tr className="text-left border-b border-cream/20">
               <th className="pb-3">User</th>
-              <th className="pb-3">Tanggal</th>
+              <th className="pb-3">Tanggal & Jam</th>
               <th className="pb-3">Total Harga</th>
               {isAdmin ? <th className="pb-3">Tindakan</th> : <th className="pb-3">Detail</th>}
             </tr>
           </thead>
-
           <tbody>
             {transaksi.length === 0 ? (
               <tr>
@@ -159,34 +182,47 @@ export default function TransaksiPage({ searchParams }) {
                 </td>
               </tr>
             ) : (
-              transaksi.map((trx) => (
-                <tr
-                  key={trx.id}
-                  className="border-b border-cream/10 hover:bg-olive/50 transition"
-                >
-                  <td className="py-3">{trx.name || "-"}</td>
-                  <td className="py-3">{formatDate(trx.createdAt)}</td>
-                  <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
+              transaksi.map((trx) => {
+                const trxDate = new Date(trx.createdAt);
+                const isToday =
+                  trxDate.getFullYear() === now.getFullYear() &&
+                  trxDate.getMonth() === now.getMonth() &&
+                  trxDate.getDate() === now.getDate();
 
-                  <td className="py-3 flex gap-2">
-                    <Link href={`/dashboard/transaction/${trx.id}`}>
-                      <button className="bg-blue py-1 px-3 rounded-lg text-sm hover:bg-blue/80 transition">
-                        Lihat
-                      </button>
-                    </Link>
-
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDelete(trx.id)}
-                        disabled={deletingId === trx.id}
-                        className="bg-red py-1 px-3 rounded-lg text-sm hover:bg-red/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingId === trx.id ? "..." : "Hapus"}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
+                return (
+                  <tr
+                    key={trx.id}
+                    className="border-b border-cream/10 hover:bg-olive/50 transition"
+                  >
+                    <td className="py-3">{trx.name || "-"}</td>
+                    <td className="py-3 font-medium">
+                      <span className={isToday ? "text-green-400" : ""}>
+                        {formatDate(trx.createdAt)}
+                      </span>
+                      {isToday && (
+                        <span className="ml-2 animate-pulse">Live</span>
+                      )}
+                    </td>
+                    <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
+                    <td className="py-3 flex gap-2">
+                      <Link href={`/dashboard/transaction/${trx.id}`}>
+                        <button className="bg-blue py-1 px-3 rounded-lg text-sm hover:bg-blue/80 transition">
+                          Lihat
+                        </button>
+                      </Link>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(trx.id)}
+                          disabled={deletingId === trx.id}
+                          className="bg-red py-1 px-3 rounded-lg text-sm hover:bg-red/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {deletingId === trx.id ? "..." : "Hapus"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
