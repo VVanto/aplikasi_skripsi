@@ -29,15 +29,16 @@ export default function AddTransaksiPage() {
     setFormData({ tanggal: formatted });
   }, []);
 
+  // Ambil SEMUA produk (limit sangat besar)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products?limit=1000");
+        const res = await fetch("/api/products?limit=100000");
         if (!res.ok) throw new Error("Gagal fetch produk");
         const data = await res.json();
         setProducts(Array.isArray(data.products) ? data.products : []);
       } catch (err) {
-        error(err.message);
+        error(err.message || "Gagal memuat daftar produk");
       }
     };
     fetchProducts();
@@ -48,7 +49,7 @@ export default function AddTransaksiPage() {
     setTotalHarga(newTotal);
   }, [items]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown ketika klik di luar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (openDropdown !== null) {
@@ -58,7 +59,6 @@ export default function AddTransaksiPage() {
         }
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
@@ -77,8 +77,8 @@ export default function AddTransaksiPage() {
     }
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
-    
-    // Clean up search term
+
+    // Bersihkan search term
     const newSearchTerms = { ...searchTerms };
     delete newSearchTerms[index];
     setSearchTerms(newSearchTerms);
@@ -87,6 +87,7 @@ export default function AddTransaksiPage() {
   const updateItem = (index, field, value) => {
     const newItems = [...items];
 
+    // Cek duplikat barang
     if (field === "barangId" && value) {
       const existingIndex = newItems.findIndex(
         (item, i) => i !== index && item.barangId === value
@@ -205,18 +206,27 @@ export default function AddTransaksiPage() {
     }
   };
 
+  // ==== PERBAIKAN UTAMA DI SINI ====
   const getFilteredProducts = (index) => {
-    const searchTerm = searchTerms[index] || "";
-    return products.filter((product) => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const isAlreadySelected = items.some((it, i) => i !== index && it.barangId == product.id);
-      return matchesSearch && !isAlreadySelected;
+    const searchTerm = (searchTerms[index] || "").trim();
+    const lowerSearch = searchTerm.toLowerCase();
+
+    let filtered = products.filter((product) => {
+      const matchesName = product.name.toLowerCase().includes(lowerSearch);
+      const matchesCategory = product.category?.toLowerCase().includes(lowerSearch);
+      const isAlreadySelected = items.some(
+        (it, i) => i !== index && it.barangId == product.id
+      );
+      return (matchesName || matchesCategory) && !isAlreadySelected;
     });
+
+    // Batasi maksimal 50 hasil supaya tidak lag
+    return filtered.slice(0, 50);
   };
 
   const handleSelectProduct = (index, productId) => {
     updateItem(index, "barangId", productId);
-    const product = products.find(p => p.id == productId);
+    const product = products.find((p) => p.id == productId);
     setSearchTerms({ ...searchTerms, [index]: product?.name || "" });
     setOpenDropdown(null);
   };
@@ -237,7 +247,7 @@ export default function AddTransaksiPage() {
             type="datetime-local"
             value={formData.tanggal}
             onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-            className="bg-transparent p-3 rounded-lg w-full text-cream"
+            className="bg-transparent p-3 rounded-lg w-full text-cream border border-lightOlive"
             disabled
           />
         </div>
@@ -272,10 +282,12 @@ export default function AddTransaksiPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Custom Searchable Dropdown */}
                 <div className="relative" ref={(el) => (dropdownRefs.current[index] = el)}>
-                  <label className="block mb-1 text-sm font-medium text-cream">Pilih Barang</label>
+                  <label className="block mb-1 text-sm font-medium text-cream">
+                    Pilih Barang
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ketik untuk mencari..."
+                    placeholder="Ketik nama / kategori barang..."
                     value={searchTerms[index] || ""}
                     onChange={(e) => {
                       setSearchTerms({ ...searchTerms, [index]: e.target.value });
@@ -285,30 +297,42 @@ export default function AddTransaksiPage() {
                     className="bg-transparent border border-lightOlive p-3 rounded-lg w-full text-sm text-cream focus:border-sage focus:outline-none transition"
                     autoComplete="off"
                   />
-                  
+
                   {isDropdownOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-olive border border-lightOlive rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-olive border border-lightOlive rounded-lg shadow-lg max-h-96 overflow-y-auto">
                       {filteredProducts.length > 0 ? (
-                        filteredProducts.map((product) => (
-                          <div
-                            key={product.id}
-                            onClick={() => handleSelectProduct(index, product.id)}
-                            className="p-3 hover:bg-sage/20 cursor-pointer text-cream border-b border-lightOlive/30 last:border-b-0"
-                          >
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-xs text-cream/70">
-                              Stok: {product.stok} {product.satuan} | Rp {Number(product.harga).toLocaleString("id-ID")}
+                        <>
+                          {filteredProducts.map((product) => (
+                            <div
+                              key={product.id}
+                              onClick={() => handleSelectProduct(index, product.id)}
+                              className="p-3 hover:bg-sage/30 cursor-pointer text-cream border-b border-lightOlive/30 last:border-b-0 transition"
+                            >
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-xs text-cream/70">
+                                {product.category} • Stok: {product.stok} {product.satuan} • Rp{" "}
+                                {Number(product.harga).toLocaleString("id-ID")}
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      ) : (
+                          ))}
+                          {filteredProducts.length === 50 && (
+                            <div className="p-3 text-center text-xs text-cream/60 italic bg-olive/80">
+                              Menampilkan 50 dari banyak hasil. Ketik lebih spesifik untuk mempersempit.
+                            </div>
+                          )}
+                        </>
+                      ) : searchTerms[index] ? (
                         <div className="p-3 text-cream/70 text-sm text-center">
                           Tidak ada barang ditemukan
+                        </div>
+                      ) : (
+                        <div className="p-3 text-cream/70 text-sm text-center">
+                          Ketik nama atau kategori barang untuk mencari...
                         </div>
                       )}
                     </div>
                   )}
-                  
+
                   {selectedProduct && (
                     <p className="text-xs text-cream/70 mt-1">
                       Harga: Rp {Number(selectedProduct.harga).toLocaleString("id-ID")}
