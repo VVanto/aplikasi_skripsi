@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
 
@@ -16,12 +16,15 @@ export default function AddTransaksiPage() {
   const [totalHarga, setTotalHarga] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // State untuk searchable dropdown
+  const [searchTerms, setSearchTerms] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const dropdownRefs = useRef({});
+
   useEffect(() => {
     const now = new Date();
-
-    // ---- CARA OTOMATIS ----
-    const offsetMs = now.getTimezoneOffset() * 60_000;    // offset dalam ms (negatif untuk +zone)
-    const localTime = new Date(now.getTime() - offsetMs); // konversi ke lokal
+    const offsetMs = now.getTimezoneOffset() * 60_000;
+    const localTime = new Date(now.getTime() - offsetMs);
     const formatted = localTime.toISOString().slice(0, 16);
     setFormData({ tanggal: formatted });
   }, []);
@@ -45,6 +48,21 @@ export default function AddTransaksiPage() {
     setTotalHarga(newTotal);
   }, [items]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdown !== null) {
+        const ref = dropdownRefs.current[openDropdown];
+        if (ref && !ref.contains(event.target)) {
+          setOpenDropdown(null);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDropdown]);
+
   const addItem = () => {
     setItems([
       ...items,
@@ -59,6 +77,11 @@ export default function AddTransaksiPage() {
     }
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
+    
+    // Clean up search term
+    const newSearchTerms = { ...searchTerms };
+    delete newSearchTerms[index];
+    setSearchTerms(newSearchTerms);
   };
 
   const updateItem = (index, field, value) => {
@@ -182,6 +205,22 @@ export default function AddTransaksiPage() {
     }
   };
 
+  const getFilteredProducts = (index) => {
+    const searchTerm = searchTerms[index] || "";
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const isAlreadySelected = items.some((it, i) => i !== index && it.barangId == product.id);
+      return matchesSearch && !isAlreadySelected;
+    });
+  };
+
+  const handleSelectProduct = (index, productId) => {
+    updateItem(index, "barangId", productId);
+    const product = products.find(p => p.id == productId);
+    setSearchTerms({ ...searchTerms, [index]: product?.name || "" });
+    setOpenDropdown(null);
+  };
+
   return (
     <div className="bg-olive p-5 rounded-lg mt-5 max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="flex flex-col">
@@ -198,7 +237,7 @@ export default function AddTransaksiPage() {
             type="datetime-local"
             value={formData.tanggal}
             onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-            className="bg-transparent  p-3 rounded-lg w-full text-cream "
+            className="bg-transparent p-3 rounded-lg w-full text-cream"
             disabled
           />
         </div>
@@ -207,6 +246,8 @@ export default function AddTransaksiPage() {
 
         {items.map((item, index) => {
           const selectedProduct = products.find((p) => p.id == item.barangId);
+          const filteredProducts = getFilteredProducts(index);
+          const isDropdownOpen = openDropdown === index;
 
           return (
             <div
@@ -229,32 +270,45 @@ export default function AddTransaksiPage() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
+                {/* Custom Searchable Dropdown */}
+                <div className="relative" ref={(el) => (dropdownRefs.current[index] = el)}>
                   <label className="block mb-1 text-sm font-medium text-cream">Pilih Barang</label>
-                  <select
-                    value={item.barangId}
-                    onChange={(e) => updateItem(index, "barangId", e.target.value)}
+                  <input
+                    type="text"
+                    placeholder="Ketik untuk mencari..."
+                    value={searchTerms[index] || ""}
+                    onChange={(e) => {
+                      setSearchTerms({ ...searchTerms, [index]: e.target.value });
+                      setOpenDropdown(index);
+                    }}
+                    onFocus={() => setOpenDropdown(index)}
                     className="bg-transparent border border-lightOlive p-3 rounded-lg w-full text-sm text-cream focus:border-sage focus:outline-none transition"
-                    required
-                  >
-                    <option value="" disabled>-- Pilih Barang --</option>
-                    {products.map((product) => {
-                      const isSelected = items.some(
-                        (it, i) => i !== index && it.barangId == product.id
-                      );
-                      return (
-                        <option
-                          key={product.id}
-                          value={product.id}
-                          disabled={isSelected}
-                          className={isSelected ? "text-gray-500" : "bg-olive"}
-                        >
-                          {product.name} - Stok: {product.stok} ({product.satuan})
-                          {isSelected ? " (dipilih)" : ""}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    autoComplete="off"
+                  />
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-olive border border-lightOlive rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredProducts.length > 0 ? (
+                        filteredProducts.map((product) => (
+                          <div
+                            key={product.id}
+                            onClick={() => handleSelectProduct(index, product.id)}
+                            className="p-3 hover:bg-sage/20 cursor-pointer text-cream border-b border-lightOlive/30 last:border-b-0"
+                          >
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-xs text-cream/70">
+                              Stok: {product.stok} {product.satuan} | Rp {Number(product.harga).toLocaleString("id-ID")}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-cream/70 text-sm text-center">
+                          Tidak ada barang ditemukan
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {selectedProduct && (
                     <p className="text-xs text-cream/70 mt-1">
                       Harga: Rp {Number(selectedProduct.harga).toLocaleString("id-ID")}
@@ -318,7 +372,7 @@ export default function AddTransaksiPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed "
+          className="w-full p-4 bg-sage hover:bg-sage/80 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-cream"
         >
           {loading ? "Menyimpan..." : "Simpan Transaksi"}
         </button>
