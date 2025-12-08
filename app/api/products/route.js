@@ -59,7 +59,7 @@ export async function GET(request) {
     }
 
     const [rows] = await db.query(
-      `SELECT id, name, kate as category, harga, stok, satuan, gambar 
+      `SELECT id, name, kate, harga, stok, satuan, gambar 
        FROM products ${where} 
        ORDER BY name ASC 
        LIMIT ? OFFSET ?`,
