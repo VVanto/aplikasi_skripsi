@@ -23,9 +23,20 @@ export default function AddTransaksiPage() {
 
   useEffect(() => {
     const now = new Date();
-    const offsetMs = now.getTimezoneOffset() * 60_000;
-    const localTime = new Date(now.getTime() - offsetMs);
-    const formatted = localTime.toISOString().slice(0, 16);
+
+    // Cara paling gampang & akurat: pakai toLocaleString dengan timezone Asia/Makassar (sama dengan Bali)
+    const baliTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Makassar" })
+    );
+
+    // Format manual biar jadi YYYY-MM-DDTHH:mm
+    const year = baliTime.getFullYear();
+    const month = String(baliTime.getMonth() + 1).padStart(2, "0");
+    const day = String(baliTime.getDate()).padStart(2, "0");
+    const hours = String(baliTime.getHours()).padStart(2, "0");
+    const minutes = String(baliTime.getMinutes()).padStart(2, "0");
+
+    const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
     setFormData({ tanggal: formatted });
   }, []);
 
@@ -213,7 +224,9 @@ export default function AddTransaksiPage() {
 
     let filtered = products.filter((product) => {
       const matchesName = product.name.toLowerCase().includes(lowerSearch);
-      const matchesCategory = product.category?.toLowerCase().includes(lowerSearch);
+      const matchesCategory = product.category
+        ?.toLowerCase()
+        .includes(lowerSearch);
       const isAlreadySelected = items.some(
         (it, i) => i !== index && it.barangId == product.id
       );
@@ -246,7 +259,9 @@ export default function AddTransaksiPage() {
           <input
             type="datetime-local"
             value={formData.tanggal}
-            onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, tanggal: e.target.value })
+            }
             className="bg-transparent p-3 rounded-lg w-full text-cream border border-lightOlive"
             disabled
           />
@@ -281,7 +296,10 @@ export default function AddTransaksiPage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Custom Searchable Dropdown */}
-                <div className="relative" ref={(el) => (dropdownRefs.current[index] = el)}>
+                <div
+                  className="relative"
+                  ref={(el) => (dropdownRefs.current[index] = el)}
+                >
                   <label className="block mb-1 text-sm font-medium text-cream">
                     Pilih Barang
                   </label>
@@ -290,7 +308,10 @@ export default function AddTransaksiPage() {
                     placeholder="Ketik nama / kategori barang..."
                     value={searchTerms[index] || ""}
                     onChange={(e) => {
-                      setSearchTerms({ ...searchTerms, [index]: e.target.value });
+                      setSearchTerms({
+                        ...searchTerms,
+                        [index]: e.target.value,
+                      });
                       setOpenDropdown(index);
                     }}
                     onFocus={() => setOpenDropdown(index)}
@@ -305,19 +326,23 @@ export default function AddTransaksiPage() {
                           {filteredProducts.map((product) => (
                             <div
                               key={product.id}
-                              onClick={() => handleSelectProduct(index, product.id)}
+                              onClick={() =>
+                                handleSelectProduct(index, product.id)
+                              }
                               className="p-3 hover:bg-sage/30 cursor-pointer text-cream border-b border-lightOlive/30 last:border-b-0 transition"
                             >
                               <div className="font-medium">{product.name}</div>
                               <div className="text-xs text-cream/70">
-                                {product.category} • Stok: {product.stok} {product.satuan} • Rp{" "}
+                                {product.category} • Stok: {product.stok}{" "}
+                                {product.satuan} • Rp{" "}
                                 {Number(product.harga).toLocaleString("id-ID")}
                               </div>
                             </div>
                           ))}
                           {filteredProducts.length === 50 && (
                             <div className="p-3 text-center text-xs text-cream/60 italic bg-olive/80">
-                              Menampilkan 50 dari banyak hasil. Ketik lebih spesifik untuk mempersempit.
+                              Menampilkan 50 dari banyak hasil. Ketik lebih
+                              spesifik untuk mempersempit.
                             </div>
                           )}
                         </>
@@ -335,18 +360,23 @@ export default function AddTransaksiPage() {
 
                   {selectedProduct && (
                     <p className="text-xs text-cream/70 mt-1">
-                      Harga: Rp {Number(selectedProduct.harga).toLocaleString("id-ID")}
+                      Harga: Rp{" "}
+                      {Number(selectedProduct.harga).toLocaleString("id-ID")}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-cream">Jumlah</label>
+                  <label className="block mb-1 text-sm font-medium text-cream">
+                    Jumlah
+                  </label>
                   <input
                     type="number"
                     placeholder="0"
                     value={item.jumlahBarang}
-                    onChange={(e) => updateItem(index, "jumlahBarang", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(index, "jumlahBarang", e.target.value)
+                    }
                     className="bg-transparent border border-lightOlive p-3 rounded-lg w-full text-cream focus:border-sage focus:outline-none transition"
                     required
                     min="1"
@@ -357,19 +387,31 @@ export default function AddTransaksiPage() {
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block mb-1 text-xs text-cream/80">Harga Satuan</label>
+                  <label className="block mb-1 text-xs text-cream/80">
+                    Harga Satuan
+                  </label>
                   <input
                     type="text"
-                    value={item.hargaSatuan ? `Rp ${Number(item.hargaSatuan).toLocaleString("id-ID")}` : "Rp 0"}
+                    value={
+                      item.hargaSatuan
+                        ? `Rp ${Number(item.hargaSatuan).toLocaleString(
+                            "id-ID"
+                          )}`
+                        : "Rp 0"
+                    }
                     className="bg-gray-700 border border-lightOlive p-3 rounded-lg w-full text-sm cursor-not-allowed text-cream/70"
                     readOnly
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-xs text-cream/80">Sub Total</label>
+                  <label className="block mb-1 text-xs text-cream/80">
+                    Sub Total
+                  </label>
                   <input
                     type="text"
-                    value={`Rp ${Number(item.subTotal).toLocaleString("id-ID")}`}
+                    value={`Rp ${Number(item.subTotal).toLocaleString(
+                      "id-ID"
+                    )}`}
                     className="bg-gray-700 border border-lightOlive p-3 rounded-lg w-full text-sm cursor-not-allowed text-cream/70"
                     readOnly
                   />
