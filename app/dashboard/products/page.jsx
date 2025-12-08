@@ -40,9 +40,13 @@ export default function ProductsPage({ searchParams }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoryParam = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : "";
+        const categoryParam = selectedCategory
+          ? `&category=${encodeURIComponent(selectedCategory)}`
+          : "";
         const res = await fetch(
-          `/api/products?q=${encodeURIComponent(q)}&page=${page}${categoryParam}`
+          `/api/products?q=${encodeURIComponent(
+            q
+          )}&page=${page}${categoryParam}`
         );
         if (!res.ok) throw new Error(`Gagal fetch produk: ${res.statusText}`);
         const data = await res.json();
@@ -102,7 +106,7 @@ export default function ProductsPage({ searchParams }) {
       <div className="flex items-center justify-between mb-5 gap-3">
         <div className="flex items-center gap-3 flex-1">
           <Search placeholder="Cari Produk..." />
-          
+
           <select
             value={selectedCategory}
             onChange={handleCategoryChange}
@@ -135,7 +139,7 @@ export default function ProductsPage({ searchParams }) {
             <td>Kategori</td>
             <td>Deskripsi</td>
             <td>Harga</td>
-            <td>Dibuat pada</td>
+
             <td>Stok</td>
             {isAdmin && <td>Tindakan</td>}
           </tr>
@@ -160,7 +164,7 @@ export default function ProductsPage({ searchParams }) {
                 <td>{product.kate}</td>
                 <td>{product.deskrip || "-"}</td>
                 <td>{formatPrice(product.harga)}</td>
-                <td>{formatDate(product.createdAt)}</td>
+
                 <td>
                   {product.stok} {product.satuan}
                 </td>
