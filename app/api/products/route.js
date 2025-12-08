@@ -1,3 +1,5 @@
+// file: app/api/products/route.js
+
 import { getConnection } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/app/lib/activity";
@@ -13,19 +15,22 @@ export async function GET(request) {
   const category = searchParams.get("category") || "";
   const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
 
+  // INI BARU: Kalau ada parameter ?all=true atau ?limit=... maka bypass pagination
+  const all = searchParams.get("all") === "true";
+  const limitParam = searchParams.get("limit");
+  const isFullLoad = all || (limitParam && parseInt(limitParam) > ITEMS_PER_PAGE);
+
   let db;
   try {
     db = await getConnection();
 
-    // Build WHERE clause dinamis
     const conditions = [];
     const params = [];
 
     if (q) {
-      conditions.push("name LIKE ?");
-      params.push(`%${q}%`);
+      conditions.push("(name LIKE ? OR kate LIKE ?)");
+      params.push(`%${q}%`, `%${q}%`);
     }
-
     if (category) {
       conditions.push("kate = ?");
       params.push(category);
@@ -33,28 +38,55 @@ export async function GET(request) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // Count total
+    // Hitung total
     const [countResult] = await db.query(
       `SELECT COUNT(*) as total FROM products ${where}`,
       params
     );
     const total = countResult[0].total;
 
-    // Get products
-    const [products] = await db.query(
-      `SELECT * FROM products ${where} ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
-      [...params, ITEMS_PER_PAGE, (page - 1) * ITEMS_PER_PAGE]
+    let products = [];
+    let finalLimit, finalOffset;
+
+    if (isFullLoad) {
+      // MODE FULL: Ambil semua atau sesuai limit yang diminta
+      finalLimit = limitParam ? Math.min(parseInt(limitParam), 100000) : 100000;
+      finalOffset = 0;
+    } else {
+      // MODE PAGINATION biasa
+      finalLimit = ITEMS_PER_PAGE;
+      finalOffset = (page - 1) * ITEMS_PER_PAGE;
+    }
+
+    const [rows] = await db.query(
+      `SELECT id, name, kate as category, harga, stok, satuan, gambar 
+       FROM products ${where} 
+       ORDER BY name ASC 
+       LIMIT ? OFFSET ?`,
+      [...params, finalLimit, finalOffset]
     );
 
-    return NextResponse.json({ products, count: total });
+    products = rows;
+
+    return NextResponse.json({
+      products,
+      count: total,
+      page: isFullLoad ? 1 : page,
+      limit: finalLimit,
+      totalPages: isFullLoad ? 1 : Math.ceil(total / ITEMS_PER_PAGE),
+    });
   } catch (error) {
-    console.error("GET error:", error);
-    return NextResponse.json({ products: [], count: 0, error: error.message }, { status: 500 });
+    console.error("GET products error:", error);
+    return NextResponse.json(
+      { products: [], count: 0, error: error.message },
+      { status: 500 }
+    );
   } finally {
     db?.release();
   }
 }
 
+// POST tetap sama seperti punya kamu (nggak perlu diubah)
 export async function POST(request) {
   let db = null;
   let actorId = null;

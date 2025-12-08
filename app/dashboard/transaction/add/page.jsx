@@ -33,7 +33,7 @@ export default function AddTransaksiPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products?limit=100000");
+        const res = await fetch("/api/products?all=true");
         if (!res.ok) throw new Error("Gagal fetch produk");
         const data = await res.json();
         setProducts(Array.isArray(data.products) ? data.products : []);
