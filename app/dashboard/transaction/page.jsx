@@ -91,30 +91,20 @@ export default function TransaksiPage({ searchParams }) {
     });
   };
 
-  /* -------------------------------------------------
-     4. FUNGSI FORMAT TANGGAL SAJA (TANPA JAM)
-  ------------------------------------------------- */
-  const add7Hours = (date) => {
-    const d = new Date(date);
-    d.setHours(d.getHours() + 7);
-    return d;
-  };
 
-  const formatDate = (dateString) => {
-    if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-    const originalDate = new Date(dateString);
-    const witaDate = add7Hours(originalDate);     // +7 jam dari database
+ const formatDate = (dateString) => {
+  if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-    // Format tanggal saja tanpa jam
-    const datePart = witaDate.toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const date = new Date(dateString);
 
-    return datePart;
-  };
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 
   const formatPrice = (price) => {
     if (price == null) return "Rp 0";
