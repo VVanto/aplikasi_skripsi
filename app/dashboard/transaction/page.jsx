@@ -15,7 +15,7 @@ export default function TransaksiPage({ searchParams }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
-  // Live clock state
+  // Live clock (akan ditambah +7 jam nanti)
   const [now, setNow] = useState(new Date());
 
   const q = searchParams?.q || "";
@@ -101,20 +101,28 @@ export default function TransaksiPage({ searchParams }) {
   };
 
   /* -------------------------------------------------
-     4. FORMAT TANGGAL + JAM LIVE (LOKAL USER)
+     4. FUNGSI +7 JAM (WITA) + LIVE CLOCK
   ------------------------------------------------- */
+  const add7Hours = (date) => {
+    const d = new Date(date);
+    d.setHours(d.getHours() + 7);
+    return d;
+  };
+
   const formatDate = (dateString) => {
     if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-    const date = new Date(dateString);
+    const originalDate = new Date(dateString);
+    const witaDate = add7Hours(originalDate);     // +7 jam dari database
+    const witaNow = add7Hours(now);               // Live clock juga +7 jam
 
-    // Cek apakah transaksi hari ini
+    // Apakah transaksi ini "hari ini" di zona WITA?
     const isToday =
-      date.getFullYear() === now.getFullYear() &&
-      date.getMonth() === now.getMonth() &&
-      date.getDate() === now.getDate();
+      witaDate.getFullYear() === witaNow.getFullYear() &&
+      witaDate.getMonth() === witaNow.getMonth() &&
+      witaDate.getDate() === witaNow.getDate();
 
-    const datePart = date.toLocaleDateString("id-ID", {
+    const datePart = witaDate.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -122,15 +130,13 @@ export default function TransaksiPage({ searchParams }) {
 
     let timePart;
     if (isToday) {
-      // Hari ini → jam + detik + live
-      timePart = now.toLocaleTimeString("id-ID", {
+      timePart = witaNow.toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
       });
     } else {
-      // Bukan hari ini → jam biasa (tanpa detik)
-      timePart = date.toLocaleTimeString("id-ID", {
+      timePart = witaDate.toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -183,11 +189,12 @@ export default function TransaksiPage({ searchParams }) {
               </tr>
             ) : (
               transaksi.map((trx) => {
-                const trxDate = new Date(trx.createdAt);
+                const witaDate = add7Hours(trx.createdAt);
+                const witaNow = add7Hours(now);
                 const isToday =
-                  trxDate.getFullYear() === now.getFullYear() &&
-                  trxDate.getMonth() === now.getMonth() &&
-                  trxDate.getDate() === now.getDate();
+                  witaDate.getFullYear() === witaNow.getFullYear() &&
+                  witaDate.getMonth() === witaNow.getMonth() &&
+                  witaDate.getDate() === witaNow.getDate();
 
                 return (
                   <tr
@@ -199,9 +206,7 @@ export default function TransaksiPage({ searchParams }) {
                       <span className={isToday ? "text-green-400" : ""}>
                         {formatDate(trx.createdAt)}
                       </span>
-                      {isToday && (
-                        <span className="ml-2 animate-pulse">Live</span>
-                      )}
+                      {isToday && <span className="ml-2 animate-pulse">● Live</span>}
                     </td>
                     <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
                     <td className="py-3 flex gap-2">
