@@ -5,7 +5,7 @@ import Search from "@/app/ui/dashboard/search/search";
 import Link from "next/link";
 import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
 import { useEffect, useState } from "react";
-import Loading from "../loading";               // ← komponen loading
+import Loading from "../loading";
 
 export default function TransaksiPage({ searchParams }) {
   const { success, error, confirm } = useAlert();
@@ -14,7 +14,7 @@ export default function TransaksiPage({ searchParams }) {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null); // USER YANG LOGIN
+  const [currentUser, setCurrentUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
 
   const q = searchParams?.q || "";
@@ -68,10 +68,10 @@ export default function TransaksiPage({ searchParams }) {
     };
 
     fetchData();
-  }, [q, page]);
+  }, [q, page, error]);
 
   /* -------------------------------------------------
-     3. Hapus transaksi – pakai confirm() & success()
+     3. Hapus transaksi
   ------------------------------------------------- */
   const handleDelete = async (id) => {
     confirm("Apakah Anda yakin ingin menghapus transaksi ini?", async () => {
@@ -91,7 +91,6 @@ export default function TransaksiPage({ searchParams }) {
         setCount((prev) => prev - 1);
         success("Transaksi berhasil dihapus!");
       } catch (err) {
-        console.error("Delete error:", err);
         error(`Gagal menghapus: ${err.message}`);
       } finally {
         setDeletingId(null);
@@ -100,28 +99,28 @@ export default function TransaksiPage({ searchParams }) {
   };
 
   /* -------------------------------------------------
-     4. Helper format
+     4. FORMAT TANGGAL PAKAI JAM BALI (WITA) SELAMANYA
   ------------------------------------------------- */
-const formatDate = (dateString) => {
-  if (!dateString || dateString.includes("0000-00-00")) return "-";
+  const formatDate = (dateString) => {
+    if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-  return new Date(dateString).toLocaleString("id-ID", {
-    timeZone: "Asia/Makassar", 
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+    return new Date(dateString).toLocaleString("id-ID", {
+      timeZone: "Asia/Makassar",    // WITA = Bali, Denpasar, Makassar → UTC+8
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatPrice = (price) => {
-    if (!price && price !== 0) return "Rp 0";
+    if (price == null) return "Rp 0";
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
   /* -------------------------------------------------
-     5. Loading & error (pakai Loading component)
+     5. Loading state
   ------------------------------------------------- */
   if (loading || userLoading) return <Loading />;
 
@@ -132,10 +131,9 @@ const formatDate = (dateString) => {
       <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Nama..." />
 
-        {/* HIDE TOMBOL TAMBAHKAN JIKA BUKAN ADMIN */}
         {isAdmin && (
           <Link href="/dashboard/transaction/add">
-            <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium">
+            <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium hover:bg-sage/80 transition">
               Tambahkan
             </button>
           </Link>
@@ -171,19 +169,17 @@ const formatDate = (dateString) => {
                   <td className="py-3 font-medium">{formatPrice(trx.totalHarga)}</td>
 
                   <td className="py-3 flex gap-2">
-                    {/* SELALU TAMPILKAN "LIHAT" */}
                     <Link href={`/dashboard/transaction/${trx.id}`}>
-                      <button className="bg-blue py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-blue transition">
+                      <button className="bg-blue py-1 px-3 rounded-lg text-sm hover:bg-blue/80 transition">
                         Lihat
                       </button>
                     </Link>
 
-                    {/* HANYA ADMIN YANG BISA HAPUS */}
                     {isAdmin && (
                       <button
                         onClick={() => handleDelete(trx.id)}
                         disabled={deletingId === trx.id}
-                        className="bg-red py-1 px-3 rounded-lg text-sm cursor-pointer hover:bg-red transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-red py-1 px-3 rounded-lg text-sm hover:bg-red/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {deletingId === trx.id ? "..." : "Hapus"}
                       </button>
