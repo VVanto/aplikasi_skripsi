@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Loading from "../../loading";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function SingleTransaksiPage() {
   const params = useParams();
@@ -74,6 +76,52 @@ export default function SingleTransaksiPage() {
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
+  // Fungsi export PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(18);
+    doc.text(`Detail Transaksi #${transaksi.id}`, 14, 20);
+
+    doc.setFontSize(11);
+    doc.text(`Ditambahkan oleh: ${transaksi.name}`, 14, 30);
+    doc.text(`Username: ${transaksi.username}`, 14, 37);
+    doc.text(`Tanggal: ${formatDate(transaksi.createdAt)}`, 14, 44);
+    doc.text(`Total Harga: ${formatPrice(transaksi.totalHarga)}`, 14, 51);
+
+    // Table
+    const tableData = detailtransaksi.map((item) => [
+      item.barangId,
+      item.namaBarang,
+      item.kategoriBarang,
+      item.jumlahBarang,
+      formatPrice(item.hargaSatuan),
+      formatPrice(item.subTotal),
+    ]);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [
+        [
+          "ID Barang",
+          "Nama Barang",
+          "Kategori",
+          "Jumlah",
+          "Harga Satuan",
+          "Sub Total",
+        ],
+      ],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [139, 142, 107] }, // warna sage
+      styles: { fontSize: 9 },
+    });
+
+    // Save PDF
+    doc.save(`Transaksi-${transaksi.id}.pdf`);
+  };
+
   // Tunggu semua loading selesai
   if (loading || userLoading) {
     return (
@@ -106,7 +154,15 @@ export default function SingleTransaksiPage() {
       </div>
 
       <div className="flex-[3] bg-olive p-5 rounded-lg">
-        <h3 className="text-xl font-bold mb-4">List Item</h3>
+        <div className="flex justify-between items-start">
+          <h3 className="text-xl font-bold mb-4">List Item</h3>
+          <button
+            onClick={handleExportPDF}
+            className="bg-sage px-4 py-1 rounded-lg cursor-pointer font-medium hover:bg-sage/80 transition"
+          >
+            Print PDF
+          </button>
+        </div>
         <table className="w-full">
           <thead>
             <tr className="p-3 text-cream/80">
