@@ -76,6 +76,13 @@ export default function SingleTransaksiPage() {
     return `Rp ${Number(price).toLocaleString("id-ID")}`;
   };
 
+  // Hitung total dari semua sub total
+  const calculateTotal = () => {
+    return detailtransaksi.reduce((total, item) => {
+      return total + (Number(item.subTotal) || 0);
+    }, 0);
+  };
+
   // Fungsi export PDF
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -117,6 +124,12 @@ export default function SingleTransaksiPage() {
       headStyles: { fillColor: [139, 142, 107] }, // warna sage
       styles: { fontSize: 9 },
     });
+
+    // Tambahkan total di PDF
+    const finalY = doc.lastAutoTable.finalY || 60;
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.text(`Total: ${formatPrice(calculateTotal())}`, 14, finalY + 10);
 
     // Save PDF
     doc.save(`Transaksi-${transaksi.id}.pdf`);
@@ -208,6 +221,16 @@ export default function SingleTransaksiPage() {
               ))
             )}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-cream/20">
+              <td colSpan="5" className="p-3 text-right font-bold">
+                Total:
+              </td>
+              <td className="p-3 font-bold">
+                {formatPrice(calculateTotal())}
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
