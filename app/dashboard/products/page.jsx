@@ -14,6 +14,7 @@ export default function ProductsPage({ searchParams }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
@@ -34,6 +35,33 @@ export default function ProductsPage({ searchParams }) {
       }
     };
     fetchCurrentUser();
+  }, []);
+
+  // Ambil daftar kategori yang tersedia dari database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/products/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableCategories(data.categories || []);
+        }
+      } catch (err) {
+        console.error("Gagal ambil kategori:", err);
+        // Fallback ke kategori default jika API gagal
+        setAvailableCategories([
+          "Bahan Utama",
+          "Cat & Pelapis",
+          "Peralatan & Perkakas",
+          "Sanitasi",
+          "Kelistrikan",
+          "Kayu & Logam",
+          "Interior & Finishing",
+          "Eksterior",
+        ]);
+      }
+    };
+    fetchCategories();
   }, []);
 
   // Ambil daftar produk
@@ -78,28 +106,12 @@ export default function ProductsPage({ searchParams }) {
   };
 
   const formatPrice = (price) => `Rp ${Number(price).toLocaleString("id-ID")}`;
-  const formatDate = (date) => {
-    if (!date || date === "0000-00-00 00:00:00") return "-";
-    const d = new Date(date);
-    return isNaN(d.getTime()) ? "-" : d.toString().slice(4, 25);
-  };
 
   if (loading) {
     return <Loading />;
   }
 
   const isAdmin = currentUser?.role === 1;
-
-  const categories = [
-    "Bahan Utama",
-    "Cat & Pelapis",
-    "Peralatan & Perkakas",
-    "Sanitasi",
-    "Kelistrikan",
-    "Kayu & Logam",
-    "Interior & Finishing",
-    "Eksterior",
-  ];
 
   return (
     <div className="bg-olive p-5 rounded-lg mt-5">
@@ -115,7 +127,7 @@ export default function ProductsPage({ searchParams }) {
             <option value="" className="bg-olive">
               Semua Kategori
             </option>
-            {categories.map((cat) => (
+            {availableCategories.map((cat) => (
               <option className="bg-olive" key={cat} value={cat}>
                 {cat}
               </option>
@@ -139,7 +151,6 @@ export default function ProductsPage({ searchParams }) {
             <td>Kategori</td>
             <td>Deskripsi</td>
             <td>Harga</td>
-
             <td>Stok</td>
             {isAdmin && <td>Tindakan</td>}
           </tr>
@@ -148,7 +159,7 @@ export default function ProductsPage({ searchParams }) {
           {products.length === 0 ? (
             <tr>
               <td
-                colSpan={isAdmin ? "7" : "6"}
+                colSpan={isAdmin ? "6" : "5"}
                 className="text-center py-8 text-cream/70"
               >
                 Tidak ada Produk ditemukan
@@ -164,7 +175,6 @@ export default function ProductsPage({ searchParams }) {
                 <td>{product.kate}</td>
                 <td>{product.deskrip || "-"}</td>
                 <td>{formatPrice(product.harga)}</td>
-
                 <td>
                   {product.stok} {product.satuan}
                 </td>

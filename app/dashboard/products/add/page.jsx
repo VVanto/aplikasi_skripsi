@@ -4,10 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAlert } from "@/app/ui/dashboard/alert/useAlert";
+import CreatableSelect from "react-select/creatable";
 
 const AddProductPage = () => {
   const router = useRouter();
   const { success, error } = useAlert();
+
+  const kategoriOptions = [
+    { value: "Bahan Utama", label: "Bahan Utama" },
+    { value: "Cat & Pelapis", label: "Cat & Pelapis" },
+    { value: "Peralatan & Perkakas", label: "Peralatan & Perkakas" },
+    { value: "Sanitasi", label: "Sanitasi" },
+    { value: "Kelistrikan", label: "Kelistrikan" },
+    { value: "Kayu & Logam", label: "Kayu & Logam" },
+    { value: "Interior & Finishing", label: "Interior & Finishing" },
+    { value: "Eksterior", label: "Eksterior" },
+  ];
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,6 +33,71 @@ const AddProductPage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // Custom styles untuk CreatableSelect
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: "transparent",
+      borderColor: "var(--lightOlive, #8b9474)",
+      borderRadius: "0.5rem",
+      padding: "1.25rem",
+      minHeight: "auto",
+      boxShadow: state.isFocused ? "0 0 0 1px var(--lightOlive, #8b9474)" : "none",
+      "&:hover": {
+        borderColor: "var(--lightOlive, #8b9474)",
+      },
+    }),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: "var(--olive, #3C3D37)",
+      borderRadius: "0.5rem",
+      border: "1px solid var(--lightOlive, #5c5e54)",
+      marginTop: "0.25rem",
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused 
+        ? "var(--sage, #005956)" 
+        : "transparent",
+      color: "white",
+      padding: "0.75rem 1rem",
+      cursor: "pointer",
+      "&:active": {
+        backgroundColor: "var(--sage, #005956)",
+      },
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    input: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "rgba(255, 255, 255, 0.5)",
+    }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: "var(--lightOlive, #5c5e54)",
+      "&:hover": {
+        color: "white",
+      },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: "var(--lightOlive, #5c5e54)",
+      "&:hover": {
+        color: "white",
+      },
+    }),
+    indicatorSeparator: (base) => ({
+      ...base,
+      backgroundColor: "var(--lightOlive, #5c5e54)",
+    }),
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -109,30 +186,26 @@ const AddProductPage = () => {
           className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
           required
         />
-        <select
-          value={formData.kate}
-          onChange={(e) => setFormData({ ...formData, kate: e.target.value })}
-          className="bg-transparent w-5/12 border border-lightOlive p-7 rounded-lg mb-7"
-          required
-        >
-          <option value="" className="bg-olive" disabled>
-            Pilih Kategori
-          </option>
-          {[
-            "Bahan Utama",
-            "Cat & Pelapis",
-            "Peralatan & Perkakas",
-            "Sanitasi",
-            "Kelistrikan",
-            "Kayu & Logam",
-            "Interior & Finishing",
-            "Eksterior",
-          ].map((cat) => (
-            <option className="bg-olive" key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
+        
+        <div className="w-5/12 mb-7">
+          <CreatableSelect
+            placeholder="Pilih atau ketik kategori"
+            value={
+              formData.kate
+                ? { value: formData.kate, label: formData.kate }
+                : null
+            }
+            onChange={(option) =>
+              setFormData({
+                ...formData,
+                kate: option ? option.value : "",
+              })
+            }
+            options={kategoriOptions}
+            isClearable
+            styles={customSelectStyles}
+          />
+        </div>
 
         <input
           type="number"

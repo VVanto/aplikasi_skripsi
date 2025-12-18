@@ -93,17 +93,17 @@ export default function TransaksiPage({ searchParams }) {
 
 
 
- const formatDate = (dateString) => {
-  if (!dateString || dateString.includes("0000-00-00")) return "-";
+  const formatDate = (dateString) => {
+    if (!dateString || dateString.includes("0000-00-00")) return "-";
 
-  const date = new Date(dateString);
+    const date = new Date(dateString);
 
-  return date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
 
   const formatPrice = (price) => {
@@ -122,13 +122,13 @@ export default function TransaksiPage({ searchParams }) {
     <div className="bg-olive p-5 rounded-lg mt-5">
       <div className="flex items-center justify-between mb-5">
         <Search placeholder="Cari Nama..." />
-        {isAdmin && (
-          <Link href="/dashboard/transaction/add">
-            <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium hover:bg-sage/80 transition">
-              Tambahkan
-            </button>
-          </Link>
-        )}
+
+        <Link href="/dashboard/transaction/add">
+          <button className="bg-sage px-4 py-2 rounded-lg cursor-pointer font-medium hover:bg-sage/80 transition">
+            Tambahkan
+          </button>
+        </Link>
+
       </div>
 
       <div className="overflow-x-auto">
