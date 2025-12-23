@@ -1,0 +1,1 @@
+SELECT * FROM dashboard_skripsi.users;
